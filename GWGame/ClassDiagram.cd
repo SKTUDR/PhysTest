@@ -1,0 +1,382 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="ECS::EntityFactory" Collapsed="true">
+    <Position X="19" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAQAEAAAAACAAAgBAAAAAAAAAAAAgAAAAAAAAAgAA=</HashCode>
+      <FileName>Scene\SceneB\SetupEntities.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ECS::CollisionSystem" Collapsed="true">
+    <Position X="12" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAABAQAAAAAAAAAAAAABAAAAIAAAAAAAAAAAA=</HashCode>
+      <FileName>Systems\CollisionSystem.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ECS::EnemySystem" Collapsed="true">
+    <Position X="17.25" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Systems\EnemySystem.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ECS::GameDirector" Collapsed="true">
+    <Position X="12" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Systems\GameDirector.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ECS::SimpleMovementSystem" Collapsed="true">
+    <Position X="15.5" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQA=</HashCode>
+      <FileName>Systems\PhysicsSystem.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ECS::FullMovementSystem" Collapsed="true">
+    <Position X="10.25" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQA=</HashCode>
+      <FileName>Systems\PhysicsSystem.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ECS::PlayerMovementSystem" Collapsed="true">
+    <Position X="17.25" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAA=</HashCode>
+      <FileName>Systems\PlayerMovementSystem.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ECS::PlayerSystem" Collapsed="true">
+    <Position X="19" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAIAEAEAAA=</HashCode>
+      <FileName>Systems\PlayerSystem.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ECS::RenderSystem" Collapsed="true">
+    <Position X="12" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AARIAAAAAAAAAAAAABAAAAAAAAACACAAAAACQAAAAEA=</HashCode>
+      <FileName>Systems\RenderSystem.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Graphics::ColliderDebugRenderer" Collapsed="true">
+    <Position X="10.25" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQAAgAAAAAAAAAAACBABAFAAAAAQAAA=</HashCode>
+      <FileName>Graphics\ColliderDebugRenderer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Graphics::ModelRegistry" Collapsed="true">
+    <Position X="15.5" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAQgAAAAAAAAABABAgAAAQAAAAAgAAAAAAAAAAAAgA=</HashCode>
+      <FileName>Graphics\ModelRegistry.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Graphics::ShadowRenderer" Collapsed="true">
+    <Position X="13.75" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAIDAEAAABAAAEAAAKAAAEAAAQACAAAQAAg=</HashCode>
+      <FileName>Graphics\ShadowRenderer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Imase::DebugCamera" Collapsed="true">
+    <Position X="13.75" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQCAIAAAAAQAAAAQAAIAAAAUABEYQAAAAAwQBAAAAA=</HashCode>
+      <FileName>ImaseLib\DebugCamera.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Imase::DebugRenderer" Collapsed="true">
+    <Position X="15.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAABAAAAAAAABAAIIAAAABAAAAAAAIA=</HashCode>
+      <FileName>ImaseLib\DebugRenderer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Imase::GridFloor" Collapsed="true">
+    <Position X="13.75" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAkgAAAAAQAAAAACAAYAAAAAAAAAAAAYBgAAAoQAAA=</HashCode>
+      <FileName>ImaseLib\GridFloor.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Imase::SceneManager&lt;TSceneKey, TContext&gt;" Collapsed="true">
+    <Position X="0.5" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CQQAAAAgAARIQAAEAAACgAgAAoAABAgAABACAACBAAQ=</HashCode>
+      <FileName>ImaseLib\SceneManager.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RandomGenerator" Collapsed="true">
+    <Position X="10.25" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQAIAAAAABAAAAAAAAAAAAABBAAAACAAABAgAAAAAAA=</HashCode>
+      <FileName>KUtil\Random.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="BaseScene" Collapsed="true">
+    <Position X="0.75" Y="11.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJAAAAAAAAA=</HashCode>
+      <FileName>Scene\BaseScene\BaseScene.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SceneA" Collapsed="true">
+    <Position X="3" Y="11.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJAAAAAAAAA=</HashCode>
+      <FileName>Scene\SceneA\SceneA.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SceneB" Collapsed="true">
+    <Position X="5.25" Y="11.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>KARABUAAAQAACEQwACAAQAAIIgAEABCQALAIAQAQRgA=</HashCode>
+      <FileName>Scene\SceneB\SceneB.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Struct Name="ECS::CastShadowComp" Collapsed="true">
+    <Position X="17.25" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Components\CastShadow.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::AABB" Collapsed="true">
+    <Position X="10.25" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAA=</HashCode>
+      <FileName>Components\Collider.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::OBB" Collapsed="true">
+    <Position X="12" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAA=</HashCode>
+      <FileName>Components\Collider.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::Capsule" Collapsed="true">
+    <Position X="15.5" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAA=</HashCode>
+      <FileName>Components\Collider.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::PhysMaterial" Collapsed="true">
+    <Position X="13.75" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAQEAAQAAAAAAAAAAAAA=</HashCode>
+      <FileName>Components\Collider.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::ColliderFlags" Collapsed="true">
+    <Position X="10.25" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAAAAAAEAAAAAAAAAAAABAAAAAAAAAAAgAAA=</HashCode>
+      <FileName>Components\Collider.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::ColliderComp" Collapsed="true">
+    <Position X="19" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACCAAADAAAAAgAAAAAAAABAEAAAAAAAAAAAABCBAhAQ=</HashCode>
+      <FileName>Components\Collider.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::ContactPoint" Collapsed="true">
+    <Position X="15.5" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAIAgAAAAAAAAAAAAAIAAAAAA=</HashCode>
+      <FileName>Components\CollisionResult.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::CollisionResult" Collapsed="true">
+    <Position X="12" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAAAAAAAAAAAAAAAgAQAAAEAAgAQBAAAAAAQA=</HashCode>
+      <FileName>Components\CollisionResult.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::LifetimeComp" Collapsed="true">
+    <Position X="13.75" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Components\GamePlay.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::PlayerTagComp" Collapsed="true">
+    <Position X="17.25" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Components\GamePlay.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::EnemyTagComp" Collapsed="true">
+    <Position X="19" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Components\GamePlay.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::BossTagComp" Collapsed="true">
+    <Position X="13.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Components\GamePlay.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::DebugTagComp" Collapsed="true">
+    <Position X="17.25" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Components\GamePlay.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::PlayerInputComponent" Collapsed="true">
+    <Position X="15.5" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAABAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Components\GamePlay.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::LightComp" Collapsed="true">
+    <Position X="15.5" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIACAAIAQAAAAAIAAAAQABCACAAAAAAAAAAAA=</HashCode>
+      <FileName>Components\Light.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::VelocityComp" Collapsed="true">
+    <Position X="17.25" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAJAAAAAAAAAAAAAAACAAAAAAABAAAAAA=</HashCode>
+      <FileName>Components\Physics.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::AccelerationComp" Collapsed="true">
+    <Position X="12" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAIAAAAAEAEAAAAAAAAAAAAAAADCAAAgA=</HashCode>
+      <FileName>Components\Physics.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::MeshRendererComp" Collapsed="true">
+    <Position X="17.25" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAQAAAAAAAAAAAAAAAABAAAABAAAAGAAAAACAAAAAA=</HashCode>
+      <FileName>Components\Render.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::ModelRenderComp" Collapsed="true">
+    <Position X="10.25" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAIAAA=</HashCode>
+      <FileName>Components\Render.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::SpriteRenderComp" Collapsed="true">
+    <Position X="12" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAA=</HashCode>
+      <FileName>Components\Render.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::TextureComp" Collapsed="true">
+    <Position X="13.75" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAA=</HashCode>
+      <FileName>Components\Render.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::MeshTypeComp" Collapsed="true">
+    <Position X="19" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Components\Render.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::ColorComp" Collapsed="true">
+    <Position X="13.75" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BABAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAA=</HashCode>
+      <FileName>Components\Render.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::RenderComp" Collapsed="true">
+    <Position X="19" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAAAAAAAAAgAAAAgAAAAAEAAAAAAAAAAAAQCAAAAAA=</HashCode>
+      <FileName>Components\Render.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::TransformComp" Collapsed="true">
+    <Position X="15.5" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAACAAAAAAACAIAACAAAAAAAAAADAAAAAAAI=</HashCode>
+      <FileName>Components\Transform.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ECS::Frustum" Collapsed="true">
+    <Position X="10.25" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAEAAAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAABAAAA=</HashCode>
+      <FileName>Systems\RenderSystem.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="Graphics::ShadowMap" Collapsed="true">
+    <Position X="10.25" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAGAAAAAAAAAAAAAAAIAAAAAAAkAACAAGAAAAAAA=</HashCode>
+      <FileName>Graphics\ShadowRenderer.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="Imase::ISceneController&lt;TSceneKey&gt;" Collapsed="true">
+    <Position X="0.5" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAoAABAAAAAAAAgAAAAA=</HashCode>
+      <FileName>ImaseLib\SceneManager.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="Imase::SceneBase&lt;TSceneKey, TContext&gt;" Collapsed="true">
+    <Position X="3" Y="10" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAABAgFAAAAgAAAAAAQAAAAAJACAAAAAAA=</HashCode>
+      <FileName>ImaseLib\SceneManager.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="Input::InputState" Collapsed="true">
+    <Position X="12" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAIAAAAAAAIAAAAAFAAAAEAAAAIQAAAAAAAAAA=</HashCode>
+      <FileName>Systems\InputState.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Enum Name="ECS::CollisionLayer" Collapsed="true">
+    <Position X="10.25" Y="11.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAACAAAMAAAAAAQAAAAAAAAAAAAAAAAAAABAAAAA=</HashCode>
+      <FileName>Components\CollisionLayer.h</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="ECS::MeshType" Collapsed="true">
+    <Position X="12" Y="11.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAQAAAAAEAIAAAAAAAAAgAAAAAA=</HashCode>
+      <FileName>Components\Render.h</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="SceneId" Collapsed="true">
+    <Position X="13.75" Y="11.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAABAAAAA=</HashCode>
+      <FileName>Scene\SceneId.h</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Yu Gothic UI" Size="9" />
+</ClassDiagram>

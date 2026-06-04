@@ -1,0 +1,29 @@
+# .clang-format
+BasedOnStyle: LLVM
+UseTab: Never
+IndentWidth: 4
+TabWidth: 4
+ContinuationIndentWidth: 4
+
+ColumnLimit: 120
+
+BreakBeforeBraces: Allman
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortBlocksOnASingleLine: Never
+
+IndentCaseLabels: true
+SpaceBeforeParens: ControlStatements
+PointerAlignment: Left
+ReferenceAlignment: Left
+
+SortIncludes: false
+IncludeBlocks: Preserve
+
+AlwaysBreakTemplateDeclarations: MultiLine
+AccessModifierOffset: -4
+IndentAccessModifiers: false
+SpaceBeforeAssignmentOperators: true
+FixNamespaceComments: false
+NamespaceIndentation: All

@@ -1,0 +1,249 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Manifest Include="settings.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="ImaseLib\DebugCamera.cpp">
+      <Filter>ImaseLib</Filter>
+    </ClCompile>
+    <ClCompile Include="ImaseLib\DebugRenderer.cpp">
+      <Filter>ImaseLib</Filter>
+    </ClCompile>
+    <ClCompile Include="ImaseLib\GridFloor.cpp">
+      <Filter>ImaseLib</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectXTK_Utilities\DebugDraw.cpp">
+      <Filter>DirectXTK_Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\DeviceResources.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\BaseScene\BaseScene.cpp">
+      <Filter>Scene\BaseScene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\SceneA\SceneA.cpp">
+      <Filter>Scene\SceneA</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\SceneB\SceneB.cpp">
+      <Filter>Scene\SceneB</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\SceneB\SetupEntities.cpp">
+      <Filter>Scene\SceneB</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceManager\ShaderManager.cpp">
+      <Filter>ResourceManager</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Game.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="ImaseLib\DebugCamera.h">
+      <Filter>ImaseLib</Filter>
+    </ClInclude>
+    <ClInclude Include="ImaseLib\DebugRenderer.h">
+      <Filter>ImaseLib</Filter>
+    </ClInclude>
+    <ClInclude Include="ImaseLib\GridFloor.h">
+      <Filter>ImaseLib</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectXTK_Utilities\DebugDraw.h">
+      <Filter>DirectXTK_Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\DeviceResources.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\StepTimer.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ImaseLib\SceneManager.h">
+      <Filter>ImaseLib</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\BaseScene\BaseScene.h">
+      <Filter>Scene\BaseScene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\SceneId.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="GameContext.h" />
+    <ClInclude Include="Scene\SceneA\SceneA.h">
+      <Filter>Scene\SceneA</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\SceneB\SceneB.h">
+      <Filter>Scene\SceneB</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Physics.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Render.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Transform.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\Archetype.h">
+      <Filter>ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\ComponentType.h">
+      <Filter>ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\Entity.h">
+      <Filter>ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\Query.h">
+      <Filter>ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Collider.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\CollisionLayer.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\CollisionResult.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\CollisionSystem.h">
+      <Filter>Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Components.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\ModelRegistry.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\SceneB\SetupEntities.h">
+      <Filter>Scene\SceneB</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\RenderSystem.h">
+      <Filter>Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\SpriteRegistry.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\InputState.h">
+      <Filter>Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\PlayerMovementSystem.h">
+      <Filter>Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\GamePlay.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Light.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\CastShadow.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\ShadowRenderer.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\EnemySystem.h">
+      <Filter>Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="KUtil\Random.h">
+      <Filter>KoikeUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\PlayerSystem.h">
+      <Filter>Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\ColliderDebugRenderer.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\GameDirector.h">
+      <Filter>Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\MeshData.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\MeshLoader.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\MeshRegistry.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\InstancedRenderSystem.h">
+      <Filter>Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceManager\ShaderManager.h">
+      <Filter>ResourceManager</Filter>
+    </ClInclude>
+    <ClInclude Include="KUtil\EventBus.h">
+      <Filter>KoikeUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Rigidbody.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\Physics.h">
+      <Filter>Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\World.h">
+      <Filter>ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ECS\EventQueue.h">
+      <Filter>ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\PhysicsSystem.h">
+      <Filter>Systems</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resource.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="directx.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="ClassDiagram.cd">
+      <Filter>classDesign</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{8dad93d0-7aba-4a87-8592-2ad31346ed3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene\BaseScene">
+      <UniqueIdentifier>{28031d75-6288-40ba-adfc-57876af040de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene\SceneA">
+      <UniqueIdentifier>{9c087bef-d6ac-4491-9470-26aec4fa60e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene\SceneB">
+      <UniqueIdentifier>{db45f4f3-d3da-43e9-88b3-be589a5d9551}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="classDesign">
+      <UniqueIdentifier>{75ed35e9-03bd-4692-9071-2a55c5aa8b1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ECS">
+      <UniqueIdentifier>{b84ff38b-c382-463d-8029-0611c37d8534}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{bc3f68f5-c50f-4f6f-a68b-f32307995436}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Components">
+      <UniqueIdentifier>{820c1fa5-31d5-42bd-9411-00856be51757}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DirectXTK_Utilities">
+      <UniqueIdentifier>{b7782e6f-de1d-4f3a-8a7f-8bd3fda5adb2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics">
+      <UniqueIdentifier>{9afd5211-b747-4ec5-970d-4a72b2c46eaf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImaseLib">
+      <UniqueIdentifier>{8a33e316-64d9-4236-b3aa-cb236dbc72ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="KoikeUtil">
+      <UniqueIdentifier>{a0b6155a-0799-4c44-836f-8ea01692d97b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Systems">
+      <UniqueIdentifier>{53cad7c6-116b-43ee-a182-0109ea95fc73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ResourceManager">
+      <UniqueIdentifier>{8355dac9-9cde-4c31-a466-93e649d35169}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
