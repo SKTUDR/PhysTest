@@ -19,7 +19,7 @@ DirectX11を用いて開発中の3D物理エンジンです。
 ## 開発環境
 
 * OS : Windows 11
-* Visual Studio 2022 Community
+* Visual Studio 2026 Community
 * C++
 * DirectXTK
 * DirectXMath
