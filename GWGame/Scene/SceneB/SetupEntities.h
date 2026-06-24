@@ -56,6 +56,23 @@ namespace ECS
                            DirectX::SimpleMath::Vector3 direction = {-0.5f, -1.f, -0.5f}
         );
 
+        EntityID CreateCamera(const DirectX::SimpleMath::Vector3& position = {0.f, 5.f, -10.f},
+                     const DirectX::SimpleMath::Quaternion& rotation = DirectX::SimpleMath::Quaternion::Identity,
+                     const int priority = 0,         
+                     const float fov = 45.f,
+                     const float nearClip = 0.1f,
+                     const float farClip = 1000.f,
+                     const bool isPerspective = true,
+                     const bool isActive = true
+                     );
+
+        EntityID CreatePlayerFollowCamera(
+            const DirectX::SimpleMath::Vector3& position = {0.f, 5.f, -10.f},
+            const DirectX::SimpleMath::Quaternion& rotation = DirectX::SimpleMath::Quaternion::Identity,
+            const int priority = 0, const float fov = DirectX::XMConvertToRadians(60.f),
+            const float nearClip = 0.1f, const float farClip = 1000.f,
+            const bool isPerspective = true, const bool isActive = true);
+
 
     private:
         World& m_world;

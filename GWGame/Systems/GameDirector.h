@@ -20,7 +20,8 @@ namespace ECS
             gameContext;
             
             // プレイヤーが死んでいたらシーンAに戻る
-            
+            world.GetEventQueue().ForEach<DeathEvent>([&](DeathEvent DE)
+                                                      { sceneController.RequestSwitch(SceneId::SceneA); });
 
             
         };

@@ -14,9 +14,11 @@ namespace ECS
     //  EntitiesTagComp
     //  処理分岐用
     // --------------------------------------------------------
-    struct PlayerTagComp{};
     struct EnemyTagComp{};
+    struct PlayerTagComp{};
+    
     struct BossTagComp{};
+    struct GroundTagComp{};
 
 
     // --------------------------------------------------------

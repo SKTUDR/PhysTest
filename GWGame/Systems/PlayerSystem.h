@@ -13,6 +13,11 @@
 
 namespace ECS
 {
+    struct DeathEvent
+    {
+        // 死んだことを通知するだけ
+    };
+
 
     // ============================================================================
     //  PlayerSystem
@@ -25,87 +30,97 @@ namespace ECS
         // ---- Update -------------------------------------------------------------
         void Update(Imase::ISceneController<SceneId>& sceneController, World& world, GameContext& gameContext)
         {
+            isGrounded = false;
             gameContext;
             // EventQueue::ForEach<T> を使って CollisionResult を列挙する（範囲ベース for は begin/end が必要なため）
             world.GetEventQueue().ForEach<CollisionResult>([&](const CollisionResult& result)
             {
-                // ---- レイヤーフィルタ（ColliderComp で確認）----------------
-                // CollisionSystem が積んだイベントでも念のため再確認する。
-                // ColliderComp がない場合はスキップ
-                if (!world.HasComponent<ColliderComp>(result.eid_a))
-                    return;
-                if (!world.HasComponent<ColliderComp>(result.eid_b))
-                    return;
+                auto PEpair = GetOrderedPair<PlayerTagComp, EnemyTagComp>(world, result);
+                auto PWpair = GetOrderedPair<PlayerTagComp, GroundTagComp>(world, result);
 
-                const auto& colA = world.GetComponent<ColliderComp>(result.eid_a);
-                const auto& colB = world.GetComponent<ColliderComp>(result.eid_b);
-
-                // レイヤーが想定外のペアは処理しない
-                if (!colA.CanCollideWith(colB))
-                    return;
-
-                // ---- タグで役割を特定 ---------------------------------------
-                EntityID playerId = EntityID::Null();
-                EntityID enemyId = EntityID::Null();
-
-                // PLAYER レイヤー × ENEMY レイヤーのペアかを確認
-                const bool aIsPlayer =
-                    Any(colA.layer & CollisionLayer::PLAYER) && world.HasComponent<PlayerTagComp>(result.eid_a);
-                const bool bIsPlayer =
-                    Any(colB.layer & CollisionLayer::PLAYER) && world.HasComponent<PlayerTagComp>(result.eid_b);
-                const bool aIsEnemy =
-                    Any(colA.layer & CollisionLayer::ENEMY) && world.HasComponent<EnemyTagComp>(result.eid_a);
-                const bool bIsEnemy =
-                    Any(colB.layer & CollisionLayer::ENEMY) && world.HasComponent<EnemyTagComp>(result.eid_b);
-
-                if (aIsPlayer && bIsEnemy)
-                {
-                    playerId = result.eid_a;
-                    enemyId = result.eid_b;
-                }
-                else if (bIsPlayer && aIsEnemy)
-                {
-                    playerId = result.eid_b;
-                    enemyId = result.eid_a;
-                }
-                else
-                {
-                    return; // プレイヤー×エネミー以外は別のSystemが担当
-                }
-
+                
+                
                 // ---- ③ トリガーか物理応答かで処理を分岐 ----------------------
                 if (result.isTriggerEvent)
                 {
-                    OnPlayerTriggerEnemy(sceneController, world, playerId, enemyId, result);
+                    if (PEpair)
+                    {
+                        OnPlayerTriggerEnemy(sceneController, world, PEpair->first, PEpair->second, result);
+                    }                    
                 }
                 else
                 {
-                    OnPlayerHitEnemy(sceneController, world, playerId, enemyId, result);
+                    if (PEpair)
+                    {
+                        OnPlayerHitEnemy(sceneController, world, PEpair->first, PEpair->second, result);
+                    }
+                    if (PWpair)
+                    {
+                        isGrounded = true;
+                    }
+
                 }
+
+                auto desc = QueryBuilder{}.All<PlayerTagComp, RigidbodyComp>().Build();
+                world.Query(desc).Each<RigidbodyComp>([&](EntityID eid, RigidbodyComp& rb)
+                                                          {
+
+                        if (isGrounded)
+                        {
+                            rb.linearDamping = 4.0f;
+                        }
+                        else
+                        {
+                            rb.linearDamping = 0.01f;
+                        }
+
+                        //OutputDebugStringA((std::to_string(isGrounded) + "\r\n").c_str());
+                    
+                    });
             });
         }
 
     private:
-        bool IsPlayer(const World& world, EntityID eid) const noexcept
+        bool isGrounded = false;
+        
+        template <class T1, class T2> struct OrderedPair
         {
-            return world.IsAlive(eid) && world.HasComponent<PlayerTagComp>(eid);
-        }
+            EntityID first;
+            EntityID second;
+        };
 
-        bool IsEnemy(const World& world, EntityID eid) const noexcept
+        template <class TFirst, class TSecond>
+        std::optional<OrderedPair<TFirst, TSecond>> GetOrderedPair(World& world, const CollisionResult& result)
         {
-            return world.IsAlive(eid) && world.HasComponent<EnemyTagComp>(eid);
+            if (!world.IsAlive(result.eid_a) || !world.IsAlive(result.eid_b))
+                return std::nullopt;
+
+            const bool aFirst = world.HasComponent<TFirst>(result.eid_a);
+            const bool bFirst = world.HasComponent<TFirst>(result.eid_b);
+
+            const bool aSecond = world.HasComponent<TSecond>(result.eid_a);
+            const bool bSecond = world.HasComponent<TSecond>(result.eid_b);
+
+            if (aFirst && bSecond)
+                return {{result.eid_a, result.eid_b}};
+
+            if (bFirst && aSecond)
+                return {{result.eid_b, result.eid_a}};
+
+            return std::nullopt;
         }
 
         void OnPlayerHitEnemy(Imase::ISceneController<SceneId>& sceneController, World& world, EntityID playerId,
                               EntityID enemyId, const CollisionResult& result)
         {
-            //world.Destroy(playerId);
-            //sceneController.RequestSwitch(SceneId::SceneA);
             world;
             sceneController;
             playerId;
             enemyId;
             result;
+
+            //world.RequestDestroy(enemyId);
+            //world.GetEventQueue().Push(DeathEvent());
         }
 
         void OnPlayerTriggerEnemy(Imase::ISceneController<SceneId>& sceneController, World& world, EntityID playerId,

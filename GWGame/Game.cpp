@@ -50,6 +50,8 @@ void Game::Initialize(HWND window, int width, int height)
 
     auto device = m_deviceResources->GetD3DDevice();
 
+    DirectX::Mouse::Get().SetMode(DirectX::Mouse::MODE_RELATIVE);
+
     ComPtr<IDXGISwapChain1> swapChain = m_deviceResources->GetSwapChain();
     if (!swapChain)
         throw std::runtime_error("SwapChain missing");
@@ -122,7 +124,7 @@ void Game::Initialize(HWND window, int width, int height)
     );
 
     // 起動シーンの設定
-    m_sceneManager.SetFirstScene(SceneId::SceneA, *m_gameContext);
+    m_sceneManager.SetFirstScene(SceneId::SceneB, *m_gameContext);
 
 }
 

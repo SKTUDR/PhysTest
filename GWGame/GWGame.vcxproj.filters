@@ -37,6 +37,7 @@
     <ClCompile Include="ResourceManager\ShaderManager.cpp">
       <Filter>ResourceManager</Filter>
     </ClCompile>
+    <ClCompile Include="Physics\PhysicsWorld.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game.h" />
@@ -189,6 +190,24 @@
     <ClInclude Include="Systems\PhysicsSystem.h">
       <Filter>Systems</Filter>
     </ClInclude>
+    <ClInclude Include="Components\Camera.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\CameraSystem.h">
+      <Filter>Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\FollowCameraSystem.h">
+      <Filter>Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\PhysicsWorld.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\a.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\SweepAndPrune.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -244,6 +263,9 @@
     </Filter>
     <Filter Include="ResourceManager">
       <UniqueIdentifier>{8355dac9-9cde-4c31-a466-93e649d35169}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Physics">
+      <UniqueIdentifier>{bc702c7a-846f-4138-9e50-741926d7ecbe}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

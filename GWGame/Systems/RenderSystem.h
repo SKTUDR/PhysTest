@@ -3,6 +3,7 @@
 #include "../ECS/Query.h"
 #include "../Components/Transform.h"
 #include "../Components/Render.h"
+#include "../Components/Camera.h"
 #include "../Graphics/ModelRegistry.h"
 
 #include <array>
@@ -104,9 +105,19 @@ namespace ECS
         {
         }
 
-        void Update(World& world, ID3D11DeviceContext* context, const DirectX::SimpleMath::Matrix& view,
-                    const DirectX::SimpleMath::Matrix& proj, DirectX::CommonStates& states)
+        void Update(World& world, ID3D11DeviceContext* context, DirectX::CommonStates& states)
         {
+            DirectX::SimpleMath::Matrix view;
+            DirectX::SimpleMath::Matrix proj;
+            auto camDesc = QueryBuilder{}.All<CameraComp, ActiveCameraTagComp>().Build();
+
+            world.Query(camDesc).Each<TransformComp, CameraComp>(
+                [&](EntityID, const TransformComp& tr, const CameraComp& cam)
+                {
+                    proj = cam.projection;
+                    view = cam.view;
+                });
+
             // ---- フラスタムを View * Proj から毎フレーム構築 ----------------
             const Frustum frustum = Frustum::FromViewProj(view * proj);
 
@@ -134,7 +145,7 @@ namespace ECS
                     if (!frustum.IsAABBVisible(tr.position, scaledHalf))
                     {
                         ++m_lastCulledCount;
-                        return; // 視野外 → Draw スキップ
+                        //return; // 視野外 → Draw スキップ
                     }
 
                     // ---- 描画 ---------------------------------------------------

@@ -4,6 +4,7 @@
 #include "../ECS/Query.h"
 #include "../Components/Transform.h"
 #include "../Components/Collider.h"
+#include "../Components/Camera.h"
 
 #include <PrimitiveBatch.h>
 #include <Effects.h>
@@ -36,9 +37,21 @@ namespace Graphics
         void Render(ECS::World& world, ID3D11DeviceContext* context, const DirectX::SimpleMath::Matrix& view,
                     const DirectX::SimpleMath::Matrix& proj)
         {
+            DirectX::SimpleMath::Matrix this_view;
+            DirectX::SimpleMath::Matrix this_proj;
+            auto camDesc = ECS::QueryBuilder{}.All<ECS::CameraComp, ECS::ActiveCameraTagComp>().Build();
+
+            world.Query(camDesc).Each<ECS::TransformComp, ECS::CameraComp>(
+                [&](ECS::EntityID, const ECS::TransformComp& tr, const ECS::CameraComp& cam)
+                {
+                    this_proj = cam.projection;
+                    this_view = cam.view;
+                });
+
+
 #ifdef _DEBUG
-            m_effect->SetView(view);
-            m_effect->SetProjection(proj);
+            m_effect->SetView(this_view);
+            m_effect->SetProjection(this_proj);
             m_effect->Apply(context);
             context->IASetInputLayout(m_inputLayout.Get());
 

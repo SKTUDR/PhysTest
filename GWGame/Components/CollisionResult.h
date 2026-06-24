@@ -1,4 +1,4 @@
-#pragma once
+    #pragma once
 #include "../ECS/Entity.h"
 
 #include <vector>
@@ -7,11 +7,13 @@
 namespace ECS {
 
 // ---- ContactPoint -----------------------------------------------------------
-// 1接触点の情報。Capsule-AABB など複数接触が生じる形状では
-// CollisionResult に複数格納する（今は 1 点で十分なら max_contacts=1）。
 struct ContactPoint {
     DirectX::SimpleMath::Vector3  position;   // ワールド空間の接触点
-    DirectX::SimpleMath::Vector3  normal;     // B→A 方向の衝突法線（正規化済み）
+
+    DirectX::SimpleMath::Vector3  positionA;   // ワールド空間の接触点
+    DirectX::SimpleMath::Vector3  positionB;   // ワールド空間の接触点
+
+    DirectX::SimpleMath::Vector3  normal;     // A→B 方向の衝突法線（正規化済み）
     float depth{};                            // 貫通深度 (>0 = 重なっている)
 };
 
@@ -27,6 +29,8 @@ struct ContactPoint {
 struct CollisionResult {
     EntityID eid_a;              // エンティティ A (index 昇順)
     EntityID eid_b;              // エンティティ B
+    CollisionLayer aLayer;
+    CollisionLayer bLayer;
     ContactPoint contact;    // 代表接触点（多接触の場合は最深点
     float    impulse = 0.f;  // 付与した撃力の大きさ（response 後に確定）
     bool     isTriggerEvent = false; // true = 応答なし、通知のみ
@@ -46,9 +50,6 @@ struct CollisionResult {
     }
 };
 
-// ---- CollisionEventQueue ----------------------------------------------------
-// World が1フレーム分の CollisionResult を保持するコンテナ。
-// World::clear_collision_events() をフレーム先頭で呼ぶこと。
-using CollisionEventQueue = std::vector<CollisionResult>;
+
 
 } // namespace ECS

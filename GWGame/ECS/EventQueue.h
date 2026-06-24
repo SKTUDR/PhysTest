@@ -14,10 +14,16 @@ namespace ECS
     // ----------------------------------------------------------------------------
     struct Event
     {
-        std::type_index typeIndex; // イベントの型識別子
-        std::any payload;          // 実際のイベントデータ
+        std::type_index typeIndex;
+        std::any payload;
+
+        Event(const Event&) = default;
+        Event(Event&&) noexcept = default;
+        Event& operator=(const Event&) = default;
+        Event& operator=(Event&&) noexcept = default;
 
         template <typename T>
+            requires(!std::same_as<std::decay_t<T>, Event>)
         explicit Event(T&& data) : typeIndex(typeid(std::decay_t<T>)), payload(std::forward<T>(data))
         {
         }
@@ -56,7 +62,18 @@ namespace ECS
         // ---- イベントを積む -----------------------------------------------------
         template <typename T> void Push(T&& eventData)
         {
-            m_events.emplace_back(std::forward<T>(eventData));
+            m_pendingEvents.emplace_back(std::forward<T>(eventData));
+        }
+
+        void Flush()
+        {
+            m_events.insert(
+                m_events.end(),
+                m_pendingEvents.begin(),
+                m_pendingEvents.end()
+            );
+
+            m_pendingEvents.clear();
         }
 
         // ---- 特定型のイベントだけ走査 -------------------------------------------
@@ -100,6 +117,7 @@ namespace ECS
 
     private:
         std::vector<Event> m_events;
+        std::vector<Event> m_pendingEvents;
     };
 
 } // namespace ECS

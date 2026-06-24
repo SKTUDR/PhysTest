@@ -10,3 +10,4 @@
 #include "GamePlay.h"
 #include "Light.h"
 #include "CastShadow.h"
+#include "Camera.h"

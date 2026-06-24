@@ -12,6 +12,8 @@
 
 #include <vector>
 #include <functional>
+#include <numeric>
+#include <execution>
 
 namespace ECS {
 
@@ -97,6 +99,29 @@ public:
                 fn(arch->EntityAt(row), arch->Get<Ts>(row)...);
             }
         }
+    }
+
+    // 並列版 Each: Archetype間はpar、row間はpar_unseqで並列化
+    // Archetype間: par、row間: par_unseq の2段階並列
+    // 注意: コールバック内で World の状態を変更しないこと（例: AddComponent）。並列化の前提が崩れる。
+    template <typename... Ts, typename Fn> void ParallelEach(Fn&& fn) const
+    {
+        // Archetype間を並列化
+        std::for_each(std::execution::par, m_archetypes.begin(), m_archetypes.end(),
+                      [&fn](Archetype* arch)
+                      {
+                          const std::size_t n = arch->Size();
+                          if (n == 0)
+                              return;
+
+                          // row間を並列化
+                          std::vector<std::size_t> rows(n);
+                          std::iota(rows.begin(), rows.end(), std::size_t{0});
+
+                          std::for_each(std::execution::par_unseq, rows.begin(), rows.end(),
+                                        [&fn, arch](std::size_t row)
+                                        { fn(arch->EntityAt(row), arch->Get<Ts>(row)...); });
+                      });
     }
 
     std::size_t ArchetypeCount() const noexcept { return m_archetypes.size(); }

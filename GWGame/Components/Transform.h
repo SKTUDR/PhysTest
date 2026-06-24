@@ -55,6 +55,26 @@ struct TransformComp
         DirectX::SimpleMath::Matrix lookMat = DirectX::SimpleMath::Matrix::CreateWorld(position, forward, up);
         rotation = DirectX::SimpleMath::Quaternion::CreateFromRotationMatrix(lookMat);
     }
+
+    void SmoothLookAt(const DirectX::SimpleMath::Vector3& target, float deltaTime, float turnSpeed = 10.0f)
+    {
+       
+
+        DirectX::SimpleMath::Vector3 forward = target - position;
+
+        if (forward.LengthSquared() < 1e-8f)
+            return;
+
+        forward.Normalize();
+
+        DirectX::SimpleMath::Matrix lookMat = DirectX::SimpleMath::Matrix::CreateWorld(position, forward, DirectX::SimpleMath::Vector3::Up);
+
+        DirectX::SimpleMath::Quaternion targetRot = DirectX::SimpleMath::Quaternion::CreateFromRotationMatrix(lookMat);
+
+        rotation = DirectX::SimpleMath::Quaternion::Slerp(rotation, targetRot, turnSpeed * deltaTime);
+
+        rotation.Normalize();
+    }
 };
 } // namespace ECS
 

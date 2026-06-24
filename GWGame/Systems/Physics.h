@@ -36,10 +36,9 @@ namespace ECS
             // 位置補正パラメータ（スラブ法）
             // SLOP: 許容する最小貫通深度。小さすぎるとジッター、大きすぎると浮く。
             float positionSlop = 0.005f;
-            // CORRECTION: 補正率 [0-1]。1.0 だと過補正でガタつく。0.2〜0.4 が安定。
-            float positionCorrection = -.2f;
+            // CORRECTION: 補正率 [0-1]。1.0 だと過補正でガタつく。0.2〜0.4 が安定。z
+            float positionCorrection = .2f;
 
-            float groundNormalThreshold = 0.3f;
 
             bool useGravity = true;
         };
@@ -61,6 +60,7 @@ namespace ECS
                         if (result.isTriggerEvent)
                             return;
                         ResolveImpulse(world, result, dt); // 速度インパルスのみ
+                        
                     });
             }
 
@@ -90,14 +90,14 @@ namespace ECS
         void IntegrateVelocity(World& world, float dt)
         {
             auto desc = QueryBuilder{}.All<TransformComp, RigidbodyComp>().Build();
-            world.Query(desc).Each<TransformComp, RigidbodyComp>(
+            world.Query(desc).ParallelEach<TransformComp, RigidbodyComp>(
                 [&](EntityID eid, TransformComp& tr, RigidbodyComp& rb)
                 {
                     if (rb.isKinematic)
                         return;
 
                     // freezeRotationの処理
-                    if (rb.freezeRotation)
+                    if (rb.FreezeRotation())
                     {
                         rb.angularVelocity = DirectX::SimpleMath::Vector3::Zero;
                         rb.torqueAccum = DirectX::SimpleMath::Vector3::Zero;
@@ -107,11 +107,11 @@ namespace ECS
                     rb.velocity += rb.forceAccum * rb.invMass * dt;
 
                     // 重力 ➔ 速度
-                    if (m_params.useGravity)
+                    if (rb.useGravity)
                         rb.velocity += m_params.gravity * dt;
 
                     // トルク ➔ 角速度
-                    if (!rb.freezeRotation)
+                    if (!rb.FreezeRotation())
                         rb.IntegrateAngularVelocity(tr.rotation, dt);
                 });
         }
@@ -119,15 +119,15 @@ namespace ECS
         void IntegrateTransform(World& world, float dt)
         {
             auto desc = QueryBuilder{}.All<TransformComp, RigidbodyComp>().Build();
-            world.Query(desc).Each<TransformComp, RigidbodyComp>(
+            world.Query(desc).ParallelEach<TransformComp, RigidbodyComp>(
                 [&](EntityID eid, TransformComp& tr, RigidbodyComp& rb)
                 {
                     if (rb.isKinematic)
                         return;
 
                     // ダンピング（速度が確定した後にかけるのが一般的）
-                    rb.velocity *= std::max(0.f, 1.f - rb.linearDamping * dt);
-                    rb.angularVelocity *= std::max(0.f, 1.f - rb.angularDamping * dt);
+                    rb.velocity *= std::exp(-rb.linearDamping * dt);
+                    rb.angularVelocity *= std::exp(-rb.angularDamping * dt);
 
                     // スリープ判定
                     const float speedSq = rb.velocity.LengthSquared() + rb.angularVelocity.LengthSquared();
@@ -175,6 +175,9 @@ namespace ECS
         // ---- 速度インパルスのみ（反復ループ内で呼ぶ）---------------------------
         void ResolveImpulse(World& world, const CollisionResult& result, float dt)
         {
+            if (!world.IsAlive(result.eid_a) || !world.IsAlive(result.eid_b))
+                return;
+
             const bool hasRbA = world.HasComponent<RigidbodyComp>(result.eid_a);
             const bool hasRbB = world.HasComponent<RigidbodyComp>(result.eid_b);
             if (!hasRbA && !hasRbB)
@@ -190,6 +193,8 @@ namespace ECS
             if (!rbA && !rbB)
                 return;
 
+            
+
             // 逆質量取得
             // invMass = 0 の物体は「無限質量」とみなされる
             const float invMassA = rbA ? rbA->invMass : 0.f;
@@ -198,27 +203,28 @@ namespace ECS
             if (invMassA + invMassB < 1e-8f)
                 return;
 
-            auto GetColliderCenter = [&](EntityID eid, bool hasRb) -> DirectX::SimpleMath::Vector3
+            auto GetColliderCenter = [&](EntityID eid) -> DirectX::SimpleMath::Vector3
             {
-                if (!hasRb)
-                    return DirectX::SimpleMath::Vector3::Zero;
                 const auto& tr = world.GetComponent<TransformComp>(eid);
-                const auto* col =
-                    world.HasComponent<ColliderComp>(eid) ? &world.GetComponent<ColliderComp>(eid) : nullptr;
-                if (col)
-                    return tr.position + col->localOffset;
+
+                if (world.HasComponent<ColliderComp>(eid))
+                {
+                    const auto& col = world.GetComponent<ColliderComp>(eid);
+                    return tr.position + col.localOffset;
+                }
+
                 return tr.position;
             };
 
-            const DirectX::SimpleMath::Vector3 centerA = GetColliderCenter(result.eid_a, hasRbA);
-            const DirectX::SimpleMath::Vector3 centerB = GetColliderCenter(result.eid_b, hasRbB);
+            const DirectX::SimpleMath::Vector3 centerA = GetColliderCenter(result.eid_a);
+            const DirectX::SimpleMath::Vector3 centerB = GetColliderCenter(result.eid_b);
 
             // 重心 → 接触点ベクトル
             // 回転速度計算に必要
-            const DirectX::SimpleMath::Vector3 rA = result.contact.position - centerA;
-            const DirectX::SimpleMath::Vector3 rB = result.contact.position - centerB;
+            const DirectX::SimpleMath::Vector3 rA = result.contact.positionA - centerA;
+            const DirectX::SimpleMath::Vector3 rB = result.contact.positionB - centerB;
 
-            // 衝突法線
+             // 衝突法線
             const DirectX::SimpleMath::Vector3 n = result.contact.normal;
 
             // 接触点での速度
@@ -234,11 +240,22 @@ namespace ECS
 
 
             const float vRelN = vRel.Dot(n);
+
+            std::ostringstream oss;
+            oss << "[Impulse] eid_a=" << result.eid_a.value << " eid_b=" << result.eid_b.value
+                << " kinA=" << (hasRbA && world.GetComponent<RigidbodyComp>(result.eid_a).isKinematic)
+                << " kinB=" << (hasRbB && world.GetComponent<RigidbodyComp>(result.eid_b).isKinematic) << " n=(" << n.x
+                << "," << n.y << "," << n.z << ")"
+                << " depth=" << result.contact.depth << " vRelN=" << vRelN << " rbA=" << (rbA ? "live" : "null")
+                << " rbB=" << (rbB ? "live" : "null") << "\n";
+
+            //OutputDebugStringA(oss.str().c_str());
+
             if (vRelN < 0.f)
                 return;
 
-            const bool frozenA = rbA ? rbA->freezeRotation : true;
-            const bool frozenB = rbB ? rbB->freezeRotation : true;
+            const bool frozenA = rbA ? rbA->FreezeRotation() : true;
+            const bool frozenB = rbB ? rbB->FreezeRotation() : true;
 
             // 回転慣性項
             // rot を TransformComp から取得
@@ -325,8 +342,10 @@ namespace ECS
                 // 理想摩擦インパルス
                 float jt = -vRelT / denomT;
 
+                float maxFriction = std::abs(j) * friction;
+
                 // クーロン摩擦制限
-                jt = std::clamp(jt, -std::abs(j) * friction, std::abs(j) * friction);
+                jt = std::clamp(jt, -maxFriction, maxFriction);
 
                 // 摩擦インパルス
                 const DirectX::SimpleMath::Vector3 fImpulse = t * jt;
@@ -341,13 +360,16 @@ namespace ECS
                 if (rbA) 
                     rbA->ApplyAngularImpulse(rA.Cross(fImpulse), rotA);
                 if (rbB) 
-                    rbB->ApplyAngularImpulse(-rB.Cross(fImpulse), rotB);
+                    rbB->ApplyAngularImpulse(rB.Cross(-fImpulse), rotB);
             }
         }
 
         // ---- 位置補正のみ（ループ外で1回だけ呼ぶ）-----------------------------
         void ResolvePosition(World& world, const CollisionResult& result)
         {
+            if (!world.IsAlive(result.eid_a) || !world.IsAlive(result.eid_b))
+                return;
+
             const bool hasRbA = world.HasComponent<RigidbodyComp>(result.eid_a);
             const bool hasRbB = world.HasComponent<RigidbodyComp>(result.eid_b);
             if (!hasRbA && !hasRbB)
@@ -370,6 +392,7 @@ namespace ECS
                 return;
 
             const float depth = result.contact.depth;
+
             if (depth <= m_params.positionSlop)
                 return;
 
@@ -377,23 +400,24 @@ namespace ECS
             const auto& trA = world.GetComponent<TransformComp>(result.eid_a);
             const auto& trB = world.GetComponent<TransformComp>(result.eid_b);
 
-            auto GetColliderCenter = [&](EntityID eid, bool hasRb) -> DirectX::SimpleMath::Vector3
+            auto GetColliderCenter = [&](EntityID eid) -> DirectX::SimpleMath::Vector3
             {
-                if (!hasRb)
-                    return DirectX::SimpleMath::Vector3::Zero;
                 const auto& tr = world.GetComponent<TransformComp>(eid);
-                const auto* col =
-                    world.HasComponent<ColliderComp>(eid) ? &world.GetComponent<ColliderComp>(eid) : nullptr;
-                if (col)
-                    return tr.position + col->localOffset;
+
+                if (world.HasComponent<ColliderComp>(eid))
+                {
+                    const auto& col = world.GetComponent<ColliderComp>(eid);
+                    return tr.position + col.localOffset;
+                }
+
                 return tr.position;
             };
 
-            const DirectX::SimpleMath::Vector3 centerA = GetColliderCenter(result.eid_a, hasRbA);
-            const DirectX::SimpleMath::Vector3 centerB = GetColliderCenter(result.eid_b, hasRbB);
+            const DirectX::SimpleMath::Vector3 centerA = GetColliderCenter(result.eid_a);
+            const DirectX::SimpleMath::Vector3 centerB = GetColliderCenter(result.eid_b);
 
-            DirectX::SimpleMath::Vector3 rA = result.contact.position - centerA;
-            DirectX::SimpleMath::Vector3 rB = result.contact.position - centerB;
+            DirectX::SimpleMath::Vector3 rA = result.contact.positionA - centerA;
+            DirectX::SimpleMath::Vector3 rB = result.contact.positionB - centerB;
             DirectX::SimpleMath::Vector3 n = result.contact.normal;
 
             // 2. 回転を考慮した位置補正用の分母（Inertia項）を計算
@@ -414,19 +438,19 @@ namespace ECS
                 return iRCrossAxis.Cross(r).Dot(axis);
             };
 
-            float inertiaA = rbA ? InertiaTerm(rA, n, iWorldInvA, rbA->freezeRotation) : 0.f;
-            float inertiaB = rbB ? InertiaTerm(rB, n, iWorldInvB, rbB->freezeRotation) : 0.f;
+            float inertiaA = rbA ? InertiaTerm(rA, n, iWorldInvA, rbA->FreezeRotation()) : 0.f;
+            float inertiaB = rbB ? InertiaTerm(rB, n, iWorldInvB, rbB->FreezeRotation()) : 0.f;
 
-            float denom = invMassA + invMassB + inertiaA + inertiaB;
+            float denom = invMassA + invMassB;
             if (denom < 1e-8f)
                 return;
 
             // 3. 疑似位置インパルス（マニチュード）の計算
             // positionCorrection は 正の値（0.2〜0.8程度）にしてください
-            float positionCorrectionFactor = 0.4f; // 40%ずつめり込みを解消
-            float pJ = ((depth - m_params.positionSlop) * positionCorrectionFactor) / denom;
+            float pJ = ((depth - m_params.positionSlop) * m_params.positionCorrection) / denom;
 
             DirectX::SimpleMath::Vector3 pImpulse = n * pJ;
+            //OutputDebugStringA(std::to_string(pImpulse.y).c_str());
 
             // 4. 重心位置の補正（平行移動）
             if (rbA)
@@ -434,20 +458,20 @@ namespace ECS
             if (rbB)
                 world.GetComponent<TransformComp>(result.eid_b).position -= -pImpulse * invMassB;
 
-            // 5. 回転（rotation）の補正！
-            if (rbA && !rbA->freezeRotation)
-            {
-                // Vector3::Transform(ベクトル, 行列) の順で渡す
-                DirectX::SimpleMath::Vector3 pdTheta =
-                    DirectX::SimpleMath::Vector3::Transform(rA.Cross(pImpulse), iWorldInvA);
-                ApplyAngularVelocity(world.GetComponent<TransformComp>(result.eid_a), pdTheta, 1.0f);
-            }
-            if (rbB && !rbB->freezeRotation)
-            {
-                DirectX::SimpleMath::Vector3 pdTheta =
-                    DirectX::SimpleMath::Vector3::Transform(-rB.Cross(pImpulse), iWorldInvB);
-                ApplyAngularVelocity(world.GetComponent<TransformComp>(result.eid_b), pdTheta, 1.0f);
-            }
+            //// 5. 回転（rotation）の補正！
+            //if (rbA && !rbA->FreezeRotation())
+            //{
+            //    // Vector3::Transform(ベクトル, 行列) の順で渡す
+            //    DirectX::SimpleMath::Vector3 pdTheta =
+            //        DirectX::SimpleMath::Vector3::Transform(rA.Cross(pImpulse), iWorldInvA);
+            //    ApplyAngularVelocity(world.GetComponent<TransformComp>(result.eid_a), pdTheta, 1.0f);
+            //}
+            //if (rbB && !rbB->FreezeRotation())
+            //{
+            //    DirectX::SimpleMath::Vector3 pdTheta =
+            //        DirectX::SimpleMath::Vector3::Transform(rB.Cross(pImpulse), iWorldInvB);
+            //    ApplyAngularVelocity(world.GetComponent<TransformComp>(result.eid_b), pdTheta, 1.0f);
+            //}
 
 
             //const float mag = (depth - m_params.positionSlop) * m_params.positionCorrection / invMassSum;

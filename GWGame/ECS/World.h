@@ -12,6 +12,7 @@
 #include "Archetype.h"
 #include "Query.h"
 #include "EventQueue.h"
+#include "../Physics/PhysicsWorld.h"
 
 #include <vector>
 #include <unordered_map>
@@ -59,21 +60,35 @@ namespace ECS
         }
 
         // エンティティ破棄関数
-        void Destroy(EntityID eid)
+        void RequestDestroy(EntityID eid)
         {
-            assert(IsAlive(eid));
-            const uint32_t idx = eid.Index();
-            EntityRecord& rec = m_records[idx];
+            if (!IsAlive(eid))
+                return;
+            
+            m_destroyQueue.push_back(eid);
+        }
 
-            EntityID moved = rec.m_archetype->RemoveEntity(rec.row);
-            if (!moved.IsNull())
+        void DestroyEntitiesProcess()
+        {
+            for (auto id : m_destroyQueue)
             {
-                m_records[moved.Index()].row = rec.row;
-            }
-            rec = {};
+                if (!IsAlive(id))
+                    continue;
+                const uint32_t idx = id.Index();
+                EntityRecord& rec = m_records[idx];
 
-            ++m_generations[idx];
-            m_freeList.push_back(idx);
+                EntityID moved = rec.m_archetype->RemoveEntity(rec.row);
+                if (!moved.IsNull())
+                {
+                    m_records[moved.Index()].row = rec.row;
+                }
+                rec = {};
+
+                ++m_generations[idx];
+                m_freeList.push_back(idx);
+            }
+
+            m_destroyQueue.clear();
         }
 
         // 渡されたEntityID のエンティティが存在しているか
@@ -101,10 +116,19 @@ namespace ECS
             Archetype* newArch = GetOrCreateArchetype(newMask);
             EnsureColumn<T>(*newArch);
 
+            // MigrateEntity の前に新コンポーネントのカラムに
+            // 未初期化領域を確保しておく（MigrateEntity内のAddEntityと行数を合わせる）
             std::size_t newRow = MigrateEntity(eid, rec, newArch);
 
+            // newRow は MigrateEntity 内の AddEntity が確保した行
+            // 新コンポーネントの列だけはムーブされていないので、
+            // その行のスロットに placement new する
             ComponentStorage* newCol = GetColumnStorage(*newArch, cid);
-            void* slot = newCol->PushUninitialized(); 
+            assert(newCol);
+           
+            //void* slot = newCol->PushUninitialized();
+
+            void* slot = newCol->At(newRow);
             return *new (slot) T{};
         }
 
@@ -184,11 +208,26 @@ namespace ECS
         {
             return m_eventQueue;
         }
-        void ClearEvents() noexcept
+        void ClearOldFrameEvents() noexcept
         {
             m_eventQueue.Clear();
         }
-        
+        void FlushEvents() noexcept
+        {
+            m_eventQueue.Flush();
+        }
+
+        // ---- 物理空間API -------------------------------------------------------
+        PhysicsWorld& GetPhysicsWorld() noexcept
+        {
+            return m_physicsWorld;
+        }
+
+        const PhysicsWorld& GetPhysicsWorld() const noexcept
+        {
+            return m_physicsWorld;
+        }
+
         // ---- 統計 ---------------------------------------------------------------
         std::size_t EntityCount() const noexcept
         {
@@ -224,9 +263,12 @@ namespace ECS
         std::vector<EntityRecord>   m_records;
         std::vector<uint8_t>        m_generations;
         std::vector<uint32_t>       m_freeList;
+        std::vector<EntityID>       m_destroyQueue;
+
         ArchetypeMap                m_archetypes;
 
         EventQueue m_eventQueue;
+        PhysicsWorld m_physicsWorld;
 
         // ---- 内部ヘルパー -------------------------------------------------------
 
@@ -301,7 +343,7 @@ namespace ECS
                 ComponentStorage* srcCol = GetColumnStorage(*oldArch, cid);
                 assert(dstCol && srcCol);
 
-                ComponentStorage::MoveElement(*dstCol, *srcCol, oldRow);
+                ComponentStorage::MoveElement(*dstCol, *srcCol, oldRow, newRow);
             }
 
             // 旧 Archetype から削除（SwapRemove）

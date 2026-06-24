@@ -57,20 +57,28 @@ struct ComponentStorage {
 
     // row を末尾要素と swap して削除（O(1)）
     // 戻り値: 末尾にあったエンティティの旧インデックス（呼び出し元がEntityMap更新に使う）
-    void SwapRemove(std::size_t row) {
+    void SwapRemove(std::size_t row)
+    {
         const std::size_t last = Size() - 1;
-        if (row != last) {
+
+        if (row != last)
+        {
+            destroyFn(At(row));
+
             moveFn(At(row), At(last));
         }
+
         destroyFn(At(last));
+
         data.resize(data.size() - elementSize);
     }
 
     // src_storage の src_row から dst_storage の末尾へムーブ
-    static void MoveElement(ComponentStorage& dst, ComponentStorage& src, std::size_t srcRow) {
+    static void MoveElement(ComponentStorage& dst, ComponentStorage& src, std::size_t srcRow, std::size_t dstRow) {
         assert(dst.elementSize == src.elementSize);
-        void* d = dst.PushUninitialized();
-        src.moveFn(d, src.At(srcRow));
+        
+
+        src.moveFn(dst.At(dstRow), src.At(srcRow));
     }
 };
 
@@ -100,6 +108,12 @@ public:
     // 戻り値: 行インデックス
     std::size_t AddEntity(EntityID eid) {
         m_entities.push_back(eid);
+
+        for (auto& col : m_columns)
+        {
+            col.storage.PushUninitialized();
+        }
+
         return m_entities.size() - 1;
     }
 

@@ -32,6 +32,9 @@
 #include "../../Systems/PlayerSystem.h"
 #include "../../Systems/GameDirector.h"
 
+#include "../../Systems/CameraSystem.h"
+#include "../../Systems/FollowCameraSystem.h"
+
 #include "SetupEntities.h"
 
 class SceneB : public Imase::SceneBase<SceneId, GameContext>
@@ -58,37 +61,40 @@ private:
     Graphics::ColliderDebugRenderer m_colliderDebug;
 
 	// ロード済み ModelID
-	Graphics::ModelID m_blockModelId = Graphics::INVALID_MODEL_ID;
-	Graphics::ModelID m_enemyModelId = Graphics::INVALID_MODEL_ID;
-    Graphics::ModelID m_playerModelId = Graphics::INVALID_MODEL_ID;
-    Graphics::ModelID m_itemModelId = Graphics::INVALID_MODEL_ID;
+	Graphics::ModelID m_blockModelId    = Graphics::INVALID_MODEL_ID;
+	Graphics::ModelID m_enemyModelId    = Graphics::INVALID_MODEL_ID;
+    Graphics::ModelID m_playerModelId   = Graphics::INVALID_MODEL_ID;
+    Graphics::ModelID m_itemModelId     = Graphics::INVALID_MODEL_ID;
 
 	// 生成済み EntityID
-	ECS::EntityID m_floorId = ECS::EntityID::Null()	;
+	ECS::EntityID m_floorId	 = ECS::EntityID::Null();
+    ECS::EntityID m_enemyId = ECS::EntityID::Null();
 	ECS::EntityID m_playerId = ECS::EntityID::Null();
+    ECS::EntityID m_cameraId = ECS::EntityID::Null();
 
-    ECS::EntityID m_sunId = ECS::EntityID::Null(); 
+    
+
+    ECS::EntityID m_sunId	 = ECS::EntityID::Null(); 
 
     //  ---- エネミー EntityID ------------------------------------------
     //  100体を vector で管理。
     //  ここでは「特定エネミーを番号で引きたい」ユースケースのために保持する。
     std::vector<ECS::EntityID> m_enemyIds;
 
-	std::unique_ptr<Imase::DebugCamera> m_debugCamera;
     std::unique_ptr<Imase::GridFloor>   m_gridFloor;
-		
-	// プロジェクション行列
-	DirectX::SimpleMath::Matrix m_projection;
 
 	// --- Systems ---------------------------------
-    ECS::PlayerMovementSystem m_playerMoveSys;
-    ECS::EnemySystem m_enemySys;
-    ECS::SimpleMovementSystem m_simpleMoveSys;
-    ECS::FullMovementSystem m_fullMoveSys;
-    ECS::CollisionSystem m_collisionSys;
-    ECS::PhysicsSystem m_physicsSys;
-    ECS::PlayerSystem m_playerSys;
-    ECS::GameDirector m_gameDirector;
+    ECS::PlayerMovementSystem   m_playerMoveSys;
+    ECS::EnemySystem            m_enemySys;
+    ECS::SimpleMovementSystem   m_simpleMoveSys;
+    ECS::FullMovementSystem     m_fullMoveSys;
+    ECS::CollisionSystem        m_collisionSys;
+    ECS::PhysicsSystem          m_physicsSys;
+    ECS::PlayerSystem           m_playerSys;
+    ECS::GameDirector           m_gameDirector;
+
+	ECS::CameraSystem       m_cameraSys;
+    ECS::FollowCameraSystem m_folCameraSys;
 
 	Input::InputState m_input;
 
@@ -104,14 +110,12 @@ private:
 
 
 	// --- ヘルパ関数 -----------------------------
-
-	// プロジェクション行列を設定する関数
-    DirectX::SimpleMath::Matrix CreateProjectionMatrix(GameContext& gameContext);
-
 	// =================================================================
     //  SpawnEnemy - 1体分の生成
     // =================================================================
     ECS::EntityID SpawnEnemy(DirectX::SimpleMath::Vector3 pos, float speed);
+
+    void UpdateGame(Imase::ISceneController<SceneId>& sceneController, GameContext& gameContext);
 
 	// =================================================================
     //  SpawnEnemies - 格子状に配置

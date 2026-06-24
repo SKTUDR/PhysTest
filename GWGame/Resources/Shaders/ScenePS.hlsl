@@ -82,7 +82,7 @@ float4 main(PS_INPUT input) : SV_TARGET
 
     // Lambert 拡散光
     float3 N         = normalize(input.normal);
-    float3 L         = normalize(-lightDir);          // ライト方向は「光が向かう方向」なので反転
+    float3 L         = normalize(-lightDir);
     float  NdotL     = max(dot(N, L), 0.f);
     float3 diffuse   = lightColor * lightIntensity * NdotL;
 

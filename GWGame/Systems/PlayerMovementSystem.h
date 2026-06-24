@@ -36,7 +36,8 @@ namespace ECS
         struct Params
         {
             // WASD 移動
-            float moveAcceleration = 10.f; // 入力時に加算する加速度 (m/s^2)
+            float moveAcceleration = 4000.f; // 入力時に加算する加速度 (m/s^2)
+            float dashAcceleration = 8000.f;
 
             // 左クリック インパルス
             float impulseZ = 0.f; // +Z 方向の初速 (m/s)
@@ -49,50 +50,25 @@ namespace ECS
         }
 
         // ---- Update -------------------------------------------------------------
-        void Update(World& world, const Input::InputState& input, GameContext &gameContext)
+        void Update(World& world, const Input::InputState& input, GameContext &gameContext, float dt)
         {
-            //// WASD 入力をワールド軸に変換
-            //// カメラ考慮なし: W=+Z, S=-Z, A=-X, D=+X
-            //DirectX::SimpleMath::Vector3 moveInput = DirectX::SimpleMath::Vector3::Zero;
+            DirectX::SimpleMath::Vector3 moveForward  = DirectX::SimpleMath::Vector3::Zero;
+            DirectX::SimpleMath::Vector3 moveRight    =  DirectX::SimpleMath::Vector3::Zero;
 
-            //if (gameContext.keyboardTracker.GetLastState().IsKeyDown(Keyboard::Right))
-            //    moveInput.x -= 1.f;
-            //if (gameContext.keyboardTracker.GetLastState().IsKeyDown(Keyboard::Left))   
-            //    moveInput.x += 1.f;
+            auto camDesc = QueryBuilder{}.All<TransformComp, ActiveCameraTagComp>().Build();
 
-            //const bool applyImpulse =
-            //    gameContext.mouseButtonTracker.leftButton & gameContext.mouseButtonTracker.PRESSED;
+            world.Query(camDesc).Each<TransformComp>(
+                [&](EntityID, TransformComp& camTr)
+                {
+                    // カメラのforward/rightをそのまま使う
+                    const auto camForward = camTr.Forward();
+                    const auto camRight = camTr.Right();
 
-            //// PlayerTagComp を持つエンティティだけを対象にする
-            //auto desc = QueryBuilder{}
-            //    .All<TransformComp, VelocityComp, AccelerationComp, PlayerTagComp>()
-            //    .Build();
-
-            //const Params& p = m_params;
-
-            //world.Query(desc).Each<TransformComp, VelocityComp, AccelerationComp>(
-            //    [&moveInput, applyImpulse, &p](EntityID, TransformComp& tr, VelocityComp& vel,
-            //                                   AccelerationComp& acc)
-            //    {
-            //        // ---- WASD: 加速度をセット ------------------------------------
-            //        // 入力がある方向に加速、入力がなければ加速度ゼロ
-            //        acc.linear.x = moveInput.x * p.moveAcceleration;
-
-            //        // ---- 左クリック: 瞬間インパルスを速度に直接加算 --------------
-            //        if (applyImpulse)
-            //        {
-            //            vel.linear.x += moveInput.x * p.impulseX;
-            //        }
-
-            //        if (tr.position.x < -5.f) {
-            //            tr.position.x = -5.f;
-            //            vel.linear.x = 0.f;
-            //        }
-            //        else if (tr.position.x > 5.f) {
-            //            tr.position.x = 5.f;
-            //            vel.linear.x = 0.f;
-            //        }
-            //    });
+                    // XZ平面に投影して正規化（Y成分を無視）
+                    moveForward = {camForward.x, 0.f, camForward.z};
+                    moveRight = {camRight.x, 0.f, camRight.z};
+                    // 以降、moveForward/moveRightで移動方向を決定
+                });
 
              const bool applyImpulse =
                  gameContext.mouseButtonTracker.leftButton & gameContext.mouseButtonTracker.PRESSED;
@@ -105,36 +81,46 @@ namespace ECS
               const Params& p = m_params;
 
               world.Query(desc).Each<TransformComp, RigidbodyComp>(
-                  [&input, applyImpulse, &p](EntityID, TransformComp& tr, RigidbodyComp& rb)
+                  [&](EntityID, TransformComp& tr, RigidbodyComp& rb)
                   {
                       // ---- WASD: 加速度をセット ------------------------------------
                       // 入力がある方向に加速、入力がなければ加速度ゼロ
                       DirectX::SimpleMath::Vector3 moveInput = DirectX::SimpleMath::Vector3::Zero;
                       if (input.MoveForward())
-                          moveInput.z += 1.f;
-                      if (input.MoveBackward())
-                          moveInput.z -= 1.f;
-                      if (input.MoveLeft())
-                          moveInput.x += 1.f;
-                      if (input.MoveRight())
-                          moveInput.x -= 1.f;
-
-                      rb.AddForce(moveInput * p.moveAcceleration);
-                      // ---- 左クリック: 瞬間インパルスを速度に直接加算 --------------
-                      if (applyImpulse)
                       {
-                          DirectX::SimpleMath::Vector3 impulse = {moveInput.x * p.impulseX, p.impulseY, p.impulseZ};
-                          rb.ApplyImpulse(impulse);
-                          rb.ApplyAngularImpulse(DirectX::SimpleMath::Vector3(0.0f, 0.0f, 10.0f), tr.rotation);
+                          moveInput -= moveForward;
                       }
-                      if (tr.position.x < -5.f) {
-                          tr.position.x = -5.f;
-                          rb.velocity.x = 0.f;
+                          
+                      if (input.MoveBackward())
+                      {
+                          moveInput += moveForward;
                       }
-                      else if (tr.position.x > 5.f) {
-                          tr.position.x = 5.f;
-                          rb.velocity.x = 0.f;
+                          
+                      if (input.MoveLeft())
+                      {
+                          moveInput += moveRight;
                       }
+                          
+                      if (input.MoveRight())
+                      {
+                          moveInput -= moveRight;
+                      }
+
+                      if (moveInput.LengthSquared() > 0.0f)
+                      {
+                          moveInput.Normalize();
+                      }
+
+                      if (input.MoveDash())
+                      {
+                          rb.AddForce(moveInput * p.dashAcceleration);
+                      }
+                      else
+                      {
+                          rb.AddForce(moveInput * p.moveAcceleration);
+                      }
+                      
+                      tr.SmoothLookAt(tr.position + moveInput, dt);
                   });
         }
 

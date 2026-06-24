@@ -3,6 +3,7 @@
 #include "CollisionLayer.h"
 
 #include <variant>
+#include <array>
 
 namespace ECS {
 
@@ -41,15 +42,25 @@ struct ColliderFlags {
 
     ColliderFlags() : isTrigger(false), isDynamic(true), generateContacts(true) {}
 };
+// SAT 計算用の OBB 表現（ワールド空間）
+struct OBBData
+{
+    DirectX::SimpleMath::Vector3 center;
+    DirectX::SimpleMath::Vector3 halfExtents;
+    std::array<DirectX::SimpleMath::Vector3, 3> axes; // [0]=X [1]=Y [2]=Z
+};
 
 // ---- Collider -----------------------------------------------------------
 // 純粋データ。ロジックなし。
+// コライダーをつけるならRigidbodyCompもつけること
 //
 // 使い方:
-//   auto& col = world.add_component<ColliderComp>(eid);
+//   auto& col = world.AddComponent<ColliderComp>(eid);
 //   col.shape  = Capsule{ .radius=0.4f, .half_height=0.9f };
 //   col.layer  = CollisionLayer::PLAYER;
 //   col.mask   = LayerPreset::PLAYER_MASK;
+// 
+//   auto& rb = world.AddComponent<RigidbodyComp>(eid);
 // ----------------------------------------------------------------------------
 struct ColliderComp {
     ShapeVariant    shape  = AABB{};
@@ -57,6 +68,8 @@ struct ColliderComp {
     CollisionLayer  mask   = CollisionLayer::NONE;
     ColliderFlags   flags  = {};
     PhysMaterial    material;
+
+    OBBData cachedOBB{};
 
     // ローカル空間でのコライダーオフセット（モデル原点からのズレ補正）
     DirectX::SimpleMath::Vector3 localOffset{ 0.f, 0.f, 0.f };

@@ -4,5 +4,6 @@
     <Platform Name="x86" />
   </Configurations>
   <Project Path="GWGame/GWGame.vcxproj" Id="e1243215-95a8-4f22-a58e-ff701ff23f78" />
+  <Project Path="PerformanceTests1/PerformanceTests1.vcxproj" />
   <Project Path="ResourceBuild/ResourceBuild.vcxproj" Id="2165b15f-a117-4bd7-87b7-89e9cb2f92b2" />
 </Solution>

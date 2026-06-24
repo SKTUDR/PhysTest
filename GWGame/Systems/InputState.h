@@ -38,6 +38,10 @@ namespace Input
         {
             return Keyboard::Get().GetState().D;
         }
+        bool MoveDash() const noexcept
+        {
+            return Keyboard::Get().GetState().LeftShift;
+        }
 
         // ---- マウスボタン -------------------------------------------------------
         // 「今フレームに押した瞬間」だけ true（ホールド中は false）
@@ -46,11 +50,26 @@ namespace Input
             return gameContext.mouseButtonTracker.PRESSED;
         }
 
+        // ---- マウス差分 --------------------------------------------------------
+        // どれだけマウスが動いたかを返す
+        float MouseDeltaX() const noexcept
+        {
+            //return Mouse::Get().GetState().x;
+            return static_cast<float>(mouse.x);
+        }
+        float MouseDeltaY() const noexcept
+        {
+         
+            //return Mouse::Get().GetState().y;
+            return static_cast<float>(mouse.y);
+        }
+
         // ---- フレーム更新 -------------------------------------------------------
         // Game::Update() の先頭で必ず呼ぶ
         void Update(GameContext &gameContext) noexcept
         {
-            gameContext;
+            keyboard = gameContext.keyboardTracker.GetLastState();
+            mouse = gameContext.mouseButtonTracker.GetLastState(); 
         }
 
         private:
