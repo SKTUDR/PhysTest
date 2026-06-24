@@ -73,17 +73,6 @@ namespace ECS
                         return;
                     ResolvePosition(world, result); // 位置補正のみ
                 });
-
-            // ---- 衝突法線収集 --------------------------------------------
-            m_contactNormals.clear();
-            world.GetEventQueue().ForEach<CollisionResult>(
-                [&](const CollisionResult& result)
-                {
-                    if (result.isTriggerEvent)
-                        return;
-                    m_contactNormals.push_back({result.eid_a, result.contact.normal});
-                    m_contactNormals.push_back({result.eid_b, -result.contact.normal});
-                });
         }
 
         // ---- 積分フェーズ（衝突応答の後に呼ぶ）---------------------------------
@@ -152,12 +141,10 @@ namespace ECS
         }
 
         // ---- 旧 API 互換: Update() で両方まとめて呼ぶ場合 ----------------------
-        // ※ 推奨は Game::Update() で ResolveCollisions() → IntegratePhase() を
-        //   別々に呼ぶこと（呼び出し順を Game 側でコントロールできる）
         void Update(World& world, float dt)
         {
-            IntegrateVelocity(world, dt);
             ResolveCollisions(world, dt);
+            IntegrateVelocity(world, dt);
             IntegrateTransform(world, dt);
         }
 
@@ -170,7 +157,6 @@ namespace ECS
             EntityID eid;
             DirectX::SimpleMath::Vector3 normal;
         };
-        std::vector<ContactNormal> m_contactNormals;
 
         // ---- 速度インパルスのみ（反復ループ内で呼ぶ）---------------------------
         void ResolveImpulse(World& world, const CollisionResult& result, float dt)
@@ -203,21 +189,8 @@ namespace ECS
             if (invMassA + invMassB < 1e-8f)
                 return;
 
-            auto GetColliderCenter = [&](EntityID eid) -> DirectX::SimpleMath::Vector3
-            {
-                const auto& tr = world.GetComponent<TransformComp>(eid);
-
-                if (world.HasComponent<ColliderComp>(eid))
-                {
-                    const auto& col = world.GetComponent<ColliderComp>(eid);
-                    return tr.position + col.localOffset;
-                }
-
-                return tr.position;
-            };
-
-            const DirectX::SimpleMath::Vector3 centerA = GetColliderCenter(result.eid_a);
-            const DirectX::SimpleMath::Vector3 centerB = GetColliderCenter(result.eid_b);
+            const DirectX::SimpleMath::Vector3 centerA = GetColliderCenter(world, result.eid_a);
+            const DirectX::SimpleMath::Vector3 centerB = GetColliderCenter(world, result.eid_b);
 
             // 重心 → 接触点ベクトル
             // 回転速度計算に必要
@@ -240,14 +213,6 @@ namespace ECS
 
 
             const float vRelN = vRel.Dot(n);
-
-            std::ostringstream oss;
-            oss << "[Impulse] eid_a=" << result.eid_a.value << " eid_b=" << result.eid_b.value
-                << " kinA=" << (hasRbA && world.GetComponent<RigidbodyComp>(result.eid_a).isKinematic)
-                << " kinB=" << (hasRbB && world.GetComponent<RigidbodyComp>(result.eid_b).isKinematic) << " n=(" << n.x
-                << "," << n.y << "," << n.z << ")"
-                << " depth=" << result.contact.depth << " vRelN=" << vRelN << " rbA=" << (rbA ? "live" : "null")
-                << " rbB=" << (rbB ? "live" : "null") << "\n";
 
             //OutputDebugStringA(oss.str().c_str());
 
@@ -337,15 +302,19 @@ namespace ECS
                 const float denomT = invMassA + invMassB + inertTA + inertTB;
 
                 // 摩擦係数
-                const float friction = ((rbA ? rbA->friction : 0.f) + (rbB ? rbB->friction : 0.f)) * 0.5f;
+                const float muS = std::sqrt((rbA ? rbA->staticFriction : 0.f) * (rbB ? rbB->staticFriction : 0.f));
+                const float muK = std::sqrt((rbA ? rbA->kineticFriction : 0.f) * (rbB ? rbB->kineticFriction : 0.f));
 
                 // 理想摩擦インパルス
-                float jt = -vRelT / denomT;
+                const float jtIdeal = -vRelT / denomT;
+                const float maxStatic = muS * std::abs(j);
+                const float maxKinetic = muK * std::abs(j);
 
-                float maxFriction = std::abs(j) * friction;
-
-                // クーロン摩擦制限
-                jt = std::clamp(jt, -maxFriction, maxFriction);
+                float jt;
+                if (std::abs(jtIdeal) <= maxStatic)
+                    jt = jtIdeal; // 静止摩擦: 完全に止める
+                else
+                    jt = (jtIdeal > 0.f) ? maxKinetic : -maxKinetic;
 
                 // 摩擦インパルス
                 const DirectX::SimpleMath::Vector3 fImpulse = t * jt;
@@ -400,21 +369,8 @@ namespace ECS
             const auto& trA = world.GetComponent<TransformComp>(result.eid_a);
             const auto& trB = world.GetComponent<TransformComp>(result.eid_b);
 
-            auto GetColliderCenter = [&](EntityID eid) -> DirectX::SimpleMath::Vector3
-            {
-                const auto& tr = world.GetComponent<TransformComp>(eid);
-
-                if (world.HasComponent<ColliderComp>(eid))
-                {
-                    const auto& col = world.GetComponent<ColliderComp>(eid);
-                    return tr.position + col.localOffset;
-                }
-
-                return tr.position;
-            };
-
-            const DirectX::SimpleMath::Vector3 centerA = GetColliderCenter(result.eid_a);
-            const DirectX::SimpleMath::Vector3 centerB = GetColliderCenter(result.eid_b);
+            const DirectX::SimpleMath::Vector3 centerA = GetColliderCenter(world, result.eid_a);
+            const DirectX::SimpleMath::Vector3 centerB = GetColliderCenter(world, result.eid_b);
 
             DirectX::SimpleMath::Vector3 rA = result.contact.positionA - centerA;
             DirectX::SimpleMath::Vector3 rB = result.contact.positionB - centerB;
@@ -425,21 +381,6 @@ namespace ECS
                 rbA ? rbA->CalcWorldInvInertia(trA.rotation) : DirectX::SimpleMath::Matrix::Identity;
             const DirectX::SimpleMath::Matrix iWorldInvB =
                 rbB ? rbB->CalcWorldInvInertia(trB.rotation) : DirectX::SimpleMath::Matrix::Identity;
-
-            auto InertiaTerm = [](const DirectX::SimpleMath::Vector3& r, const DirectX::SimpleMath::Vector3& axis,
-                                  const DirectX::SimpleMath::Matrix& iWorldInv, bool frozen) -> float
-            {
-                if (frozen)
-                    return 0.f;
-                const DirectX::SimpleMath::Vector3 rCrossAxis = r.Cross(axis);
-                // I_world_inv * (r × axis)
-                const DirectX::SimpleMath::Vector3 iRCrossAxis =
-                    DirectX::SimpleMath::Vector3::Transform(rCrossAxis, iWorldInv);
-                return iRCrossAxis.Cross(r).Dot(axis);
-            };
-
-            float inertiaA = rbA ? InertiaTerm(rA, n, iWorldInvA, rbA->FreezeRotation()) : 0.f;
-            float inertiaB = rbB ? InertiaTerm(rB, n, iWorldInvB, rbB->FreezeRotation()) : 0.f;
 
             float denom = invMassA + invMassB;
             if (denom < 1e-8f)
@@ -457,34 +398,6 @@ namespace ECS
                 world.GetComponent<TransformComp>(result.eid_a).position += -pImpulse * invMassA;
             if (rbB)
                 world.GetComponent<TransformComp>(result.eid_b).position -= -pImpulse * invMassB;
-
-            //// 5. 回転（rotation）の補正！
-            //if (rbA && !rbA->FreezeRotation())
-            //{
-            //    // Vector3::Transform(ベクトル, 行列) の順で渡す
-            //    DirectX::SimpleMath::Vector3 pdTheta =
-            //        DirectX::SimpleMath::Vector3::Transform(rA.Cross(pImpulse), iWorldInvA);
-            //    ApplyAngularVelocity(world.GetComponent<TransformComp>(result.eid_a), pdTheta, 1.0f);
-            //}
-            //if (rbB && !rbB->FreezeRotation())
-            //{
-            //    DirectX::SimpleMath::Vector3 pdTheta =
-            //        DirectX::SimpleMath::Vector3::Transform(rB.Cross(pImpulse), iWorldInvB);
-            //    ApplyAngularVelocity(world.GetComponent<TransformComp>(result.eid_b), pdTheta, 1.0f);
-            //}
-
-
-            //const float mag = (depth - m_params.positionSlop) * m_params.positionCorrection / invMassSum;
-            //const DirectX::SimpleMath::Vector3 correction = result.contact.normal * mag;
-
-            //if (rbA && world.HasComponent<TransformComp>(result.eid_a))
-            //{
-            //    world.GetComponent<TransformComp>(result.eid_a).position += correction * invMassA;
-            //}
-            //if (rbB && world.HasComponent<TransformComp>(result.eid_b))
-            //{
-            //    world.GetComponent<TransformComp>(result.eid_b).position -= correction * invMassB;
-            //}
         }
 
         // ---- 角速度 → TransformComp::rotation -----------------------------
@@ -498,6 +411,19 @@ namespace ECS
             const auto delta = DirectX::SimpleMath::Quaternion::CreateFromAxisAngle(angVel / speed, speed * dt);
             tr.rotation = DirectX::SimpleMath::Quaternion::Concatenate(delta, tr.rotation);
             tr.rotation.Normalize();
+        }
+
+        static DirectX::SimpleMath::Vector3 GetColliderCenter(World& world, EntityID eid)
+        {
+            const auto& tr = world.GetComponent<TransformComp>(eid);
+
+            if (world.HasComponent<ColliderComp>(eid))
+            {
+                const auto& col = world.GetComponent<ColliderComp>(eid);
+                return tr.position + col.localOffset;
+            }
+
+            return tr.position;
         }
     };
 

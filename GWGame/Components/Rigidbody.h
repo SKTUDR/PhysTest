@@ -25,9 +25,8 @@ namespace ECS
         float restitution = 0.3f;
         float friction = 0.5f;
 
-        float staticFriction = 0.5f;
-        float dynamicFriction = 0.5f;
-
+        float staticFriction = 0.6f;  // 静止摩擦係数（μs）
+        float kineticFriction = 0.4f; // 動摩擦係数（μk）
         // ---- 制約 ---------------------------------------------------------------
         float linearDamping = 0.01f;
         float angularDamping = 0.5f;

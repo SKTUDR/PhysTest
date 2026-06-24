@@ -47,7 +47,8 @@ namespace ECS
         rb.SetMassAndInertia(60.f, {col.GetHalfExtents()}); // コライダーサイズに合わせて質量と慣性を設定
         rb.SetFreezeRotation(true);                             // プレイヤーは回転させない
         rb.restitution = 0.3f;
-        rb.friction = 1.f;
+        rb.staticFriction = 0.8f;
+        rb.kineticFriction = 0.5f;
         rb.linearDamping = 4.f;
 
         auto& ren = m_world.GetComponent<ModelRenderComp>(eid);
@@ -77,7 +78,8 @@ namespace ECS
         rb.SetMassAndInertia(60.f, {col.GetHalfExtents()}); // コライダーサイズに合わせて質量と慣性を設定
         rb.SetFreezeRotation(false);                        
         rb.restitution = 0.3f;
-        rb.friction = 1.f;
+        rb.staticFriction = 0.8f;
+        rb.kineticFriction = 0.5f;
 
         auto& ren = m_world.GetComponent<ModelRenderComp>(eid);
         ren.visible = true;

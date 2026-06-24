@@ -242,7 +242,6 @@ namespace ECS
         // ---- 全軸再構築 -------------------------------------------------------
         void RebuildAll(const std::vector<Entry>& entries)
         {
-            OutputDebugStringA("[SAP] RebuildAll called\n");
             BuildAxis(m_axisX, m_overlapX, entries, 0);
             BuildAxis(m_axisY, m_overlapY, entries, 1);
             BuildAxis(m_axisZ, m_overlapZ, entries, 2);
@@ -335,10 +334,18 @@ namespace ECS
             m_overlaps.clear();
             m_overlapsDirty = false;
 
+            const auto* smallest = &m_overlapX;
+
+            if (m_overlapY.size() < smallest->size())
+                smallest = &m_overlapY;
+
+            if (m_overlapZ.size() < smallest->size())
+                smallest = &m_overlapZ;
+
             // X ∩ Y ∩ Z
-            for (const auto key : m_overlapX)
+            for (const auto key : *smallest)
             {
-                if (m_overlapY.count(key) && m_overlapZ.count(key))
+                if (m_overlapX.count(key) && m_overlapY.count(key) && m_overlapZ.count(key))
                 {
                     const std::uint32_t lo = static_cast<std::uint32_t>(key >> 32);
                     const std::uint32_t hi = static_cast<std::uint32_t>(key & 0xFFFFFFFF);

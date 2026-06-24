@@ -46,12 +46,18 @@ public:
 
     // ========== リストからランダム選択 ==========
 
-    template <typename T> T PickFrom(const std::vector<T>& values)
+    template <typename T> T& PickFrom(const std::vector<T>& values)
     {
         if (values.empty())
             throw std::invalid_argument("値リストが空です");
         std::uniform_int_distribution<size_t> dist(0, values.size() - 1);
         return values[dist(m_engine)];
+    }
+
+    // ========== シード設定 =======================
+    void SetSeed(uint32_t seed)
+    {
+        m_engine.seed(seed);
     }
 
 private:
@@ -63,8 +69,5 @@ private:
 
     
 };
-
-// 省略記法マクロ
-#define RNG RandomGenerator::getInstance()
 
 #endif // RANDOM_GENERATOR_H

@@ -21,22 +21,8 @@ void SceneB::Update(Imase::ISceneController<SceneId>& sceneController, GameConte
     m_world.FlushEvents();
     
 	Imase::DebugRenderer& debugRenderer = gameContext.debugRenderer;
-	Imase::DebugRenderer& debugRenderer2 = gameContext.debugRenderer;
-    Imase::DebugRenderer& debugRenderer3 = gameContext.debugRenderer;
-    Imase::DebugRenderer& debugRenderer4 = gameContext.debugRenderer;
-
-	
     debugRenderer.DrawText(DirectX::SimpleMath::Vector2{100.0f, 0.0f}, std::to_wstring(gameContext.timer.GetFramesPerSecond()));
 
-    const auto PLVel = m_world.GetComponent<ECS::RigidbodyComp>(m_enemyId).velocity;
-
-    debugRenderer2.DrawText(DirectX::SimpleMath::Vector2{100.f, 20.f}, std::to_wstring((PLVel.y)));
-    
-    //const auto camPos = m_world.GetComponent<ECS::TransformComp>(m_cameraId).position;
-
-    //debugRenderer3.DrawText(DirectX::SimpleMath::Vector2{100.0f, 40.0f}, std::to_wstring(camPos.x) + L" " +
-    //                                                                         std::to_wstring(camPos.y) + L" " +
-    //                                                                         std::to_wstring(camPos.z));
     UpdateGame(sceneController, gameContext);
 
     m_world.DestroyEntitiesProcess();
@@ -78,48 +64,52 @@ void SceneB::OnEnter(GameContext& gameContext)
     m_gridFloor.reset(new Imase::GridFloor(device, context, &gameContext.commonStates));
 
     // ---- システムの構築 --------------------------------------
+    InitializeSystems(device, context);
+
+    // ---- モデルを Registry に登録 --------------------------------
+    LoadModels(device);
+
+    // ---- Entity を生成して ECS ワールドに登録 ------------------------------
+    CreateSceneObject();
+}
+
+
+ECS::EntityID SceneB::SpawnEnemy(DirectX::SimpleMath::Vector3 pos)
+{
+    ECS::EntityID eid = m_factory->CreateEnemy(m_itemModelId, pos, SimpleMath::Vector3{.5f,.5f,.5f}, RandomGenerator::GetInstance().RandFloat(0.0f, 1.0f));
+
+    return eid;
+}
+
+void SceneB::InitializeSystems(ID3D11Device* device, ID3D11DeviceContext* context)
+{
     m_renderSystem = std::make_unique<ECS::RenderSystem>(m_modelRegistry);
     m_factory = std::make_unique<ECS::EntityFactory>(m_world, m_modelRegistry);
     m_shadowRenderer = std::make_unique<Graphics::ShadowRenderer>(device, m_modelRegistry);
     m_colliderDebug.Initialize(device, context);
+}
 
-    // ---- モデルを Registry に登録 --------------------------------
-    m_blockModelId =  m_modelRegistry.LoadCMO(device, L"Resources/Models/Ground.cmo");
+void SceneB::LoadModels(ID3D11Device* device)
+{
+    m_blockModelId = m_modelRegistry.LoadCMO(device, L"Resources/Models/Ground.cmo");
     m_enemyModelId = m_modelRegistry.LoadCMO(device, L"Resources/Models/bone.cmo");
     m_playerModelId = m_modelRegistry.LoadCMO(device, L"Resources/Models/Monkey.cmo");
     m_itemModelId = m_modelRegistry.LoadCMO(device, L"Resources/Models/Cube.cmo");
-
-    // ---- Entity を生成して ECS ワールドに登録 ------------------------------
-    m_playerId = m_factory->CreatePlayer(m_itemModelId, DirectX::SimpleMath::Vector3{0.f, 5.f, 0.f},
-                                         SimpleMath::Quaternion::Identity, DirectX::SimpleMath::Vector3{.5f, .5f, .5f});
-    
-    //m_enemyId = SpawnEnemy({0,5.f,5.f}, 5.f);
-
-    m_floorId = m_factory->CreateGround(m_itemModelId, DirectX::SimpleMath::Vector3{0.f, -0.5f, 0.f},
-                                          DirectX::SimpleMath::Quaternion::Identity,
-                                          DirectX::SimpleMath::Vector3{100.f, 3.f, 100.f});
-    
-    m_enemyId = SpawnEnemy({0, 5.f, 5.f}, 5.f);
-
-    SpawnEnemies(1002);
-    
-    m_cameraId = m_factory->CreatePlayerFollowCamera();
-    m_cameraId = m_factory->CreateCamera();
-    
-    m_shadowRenderer->SetCommonStates(&gameContext.commonStates);
-
-    m_aliveTimer = 0.f;
 }
 
-
-ECS::EntityID SceneB::SpawnEnemy(DirectX::SimpleMath::Vector3 pos, float speed)
+void SceneB::CreateSceneObject()
 {
-    ECS::EntityID eid = m_factory->CreateEnemy(m_itemModelId, pos, SimpleMath::Vector3{.5f,.5f,.5f}, RandomGenerator::GetInstance().RandFloat(0.0f, 1.0f));
+    m_playerId = m_factory->CreatePlayer(m_itemModelId, DirectX::SimpleMath::Vector3{0.f, 5.f, 0.f},
+                                         SimpleMath::Quaternion::Identity, DirectX::SimpleMath::Vector3{.5f, .5f, .5f});
 
-    speed;
-    //m_world.GetComponent<ECS::RigidbodyComp>(eid).AddForce(DirectX::SimpleMath::Vector3{0.f, 0.f, speed});
+    m_floorId = m_factory->CreateGround(m_itemModelId, DirectX::SimpleMath::Vector3{0.f, -0.5f, 0.f},
+                                        DirectX::SimpleMath::Quaternion::Identity,
+                                        DirectX::SimpleMath::Vector3{100.f, 3.f, 100.f});
 
-    return eid;
+    constexpr int kSpawnCount = 2000;
+    SpawnEnemies(kSpawnCount);
+
+    m_cameraId = m_factory->CreatePlayerFollowCamera();
 }
 
 void SceneB::UpdateGame(Imase::ISceneController<SceneId>& sceneController, GameContext& gameContext)
@@ -130,43 +120,53 @@ void SceneB::UpdateGame(Imase::ISceneController<SceneId>& sceneController, GameC
 
     m_playerMoveSys.Update(m_world, m_input, gameContext, dt);
     m_playerSys.Update(sceneController, m_world, gameContext);
-
     m_enemySys.Update(m_world, dt, gameContext);
 
+    // Rigidbody、Colliderがついていない動体
     m_simpleMoveSys.Update(m_world, dt);
-
     m_fullMoveSys.Update(m_world, dt);
 
-   
-
+    // 物理システム
     m_collisionSys.Update(m_world, dt);
     m_physicsSys.IntegrateVelocity(m_world, dt);
-
     m_physicsSys.ResolveCollisions(m_world, dt);
-
     m_physicsSys.IntegrateTransform(m_world, dt);
 
+    // 追従カメラのアップデート（エンティティが移動するシステムの後）
     m_folCameraSys.AddMouseDelta(m_input.MouseDeltaX(), m_input.MouseDeltaY());
     m_folCameraSys.Update(m_world, dt);
 
+    // カメラアップデート
     m_cameraSys.Update(m_world, dt);
 
+    // ゲーム全体のアップデート
     m_gameDirector.Update(sceneController, m_world, gameContext);
 }
 
 void SceneB::SpawnEnemies(int count)
 {
+    constexpr int kColumns = 20;
+    constexpr float kRowSpacing = 2.0f;
+    constexpr float kStartY = 10.0f;
+    constexpr float kBaseZ = 30.0f;
+
+    auto& rng = RandomGenerator::GetInstance();
+
+    m_enemyIds.clear();
     m_enemyIds.reserve(count);
 
-    for (int i = 0; i < count / 3; ++i)
+    constexpr float kSpawnWidth = 75.f;
+    constexpr float kSpawnDepth = 50.f;
+
+    for (int index = 0; index < count; ++index)
     {
-        for (int j = 0; j < 3; j++)
-        {
-            ECS::EntityID eid =
-                SpawnEnemy({RandomGenerator::GetInstance().RandFloat(-10.f, 10.f), static_cast<float>((i * 5) + 10),
-                            30 + RandomGenerator::GetInstance().RandFloat(-5.f, 5.f)},
-                                           RandomGenerator::GetInstance().RandFloat(-14.f, -8.f));
-            m_enemyIds.push_back(eid);
-        }
+        const int row = index / kColumns;
+
+        const DirectX::SimpleMath::Vector3 position{rng.RandFloat(-kSpawnWidth, kSpawnWidth), kStartY + row * kRowSpacing,
+                                                    kBaseZ + rng.RandFloat(-kSpawnDepth, kSpawnDepth)};
+
+        ECS::EntityID eid = SpawnEnemy(position);
+
+        m_enemyIds.push_back(eid);
     }
 }

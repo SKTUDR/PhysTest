@@ -77,8 +77,7 @@ private:
     ECS::EntityID m_sunId	 = ECS::EntityID::Null(); 
 
     //  ---- エネミー EntityID ------------------------------------------
-    //  100体を vector で管理。
-    //  ここでは「特定エネミーを番号で引きたい」ユースケースのために保持する。
+    //  n体を vector で管理。
     std::vector<ECS::EntityID> m_enemyIds;
 
     std::unique_ptr<Imase::GridFloor>   m_gridFloor;
@@ -98,35 +97,21 @@ private:
 
 	Input::InputState m_input;
 
-	// --- シェーダー --------------------------------
-    const ResourceManager::ShaderSet* m_sceneShader = nullptr;
-    const ResourceManager::ShaderSet* m_shadowShader = nullptr;
-
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_sceneCB;
-    Microsoft::WRL::ComPtr<ID3D11Buffer> m_shadowPassCB;
-    Microsoft::WRL::ComPtr<ID3D11Buffer> m_lightCB;
-
-	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_shadowSampler;
-
 
 	// --- ヘルパ関数 -----------------------------
 	// =================================================================
     //  SpawnEnemy - 1体分の生成
     // =================================================================
-    ECS::EntityID SpawnEnemy(DirectX::SimpleMath::Vector3 pos, float speed);
+    ECS::EntityID SpawnEnemy(DirectX::SimpleMath::Vector3 pos);
 
+    void InitializeSystems(ID3D11Device* device, ID3D11DeviceContext* context);
+    void LoadModels(ID3D11Device* device);
+    void CreateSceneObject();
     void UpdateGame(Imase::ISceneController<SceneId>& sceneController, GameContext& gameContext);
 
 	// =================================================================
     //  SpawnEnemies - 格子状に配置
     // =================================================================
     void SpawnEnemies(int count);
-    
-	// プロジェクション行列設定用
-    float m_fov = 45.f;
-    float m_nearClip = 0.1f;
-    float m_farClip = 1000.f;
-
-	float m_aliveTimer = 0.f;
 };
 
