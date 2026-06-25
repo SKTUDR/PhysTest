@@ -106,7 +106,7 @@ void SceneB::CreateSceneObject()
                                         DirectX::SimpleMath::Quaternion::Identity,
                                         DirectX::SimpleMath::Vector3{100.f, 3.f, 100.f});
 
-    constexpr int kSpawnCount = 2000;
+    constexpr int kSpawnCount = 20;
     SpawnEnemies(kSpawnCount);
 
     m_cameraId = m_factory->CreatePlayerFollowCamera();
@@ -145,7 +145,7 @@ void SceneB::UpdateGame(Imase::ISceneController<SceneId>& sceneController, GameC
 
 void SceneB::SpawnEnemies(int count)
 {
-    constexpr int kColumns = 20;
+    constexpr int kColumns = 3;
     constexpr float kRowSpacing = 2.0f;
     constexpr float kStartY = 10.0f;
     constexpr float kBaseZ = 30.0f;
@@ -155,8 +155,8 @@ void SceneB::SpawnEnemies(int count)
     m_enemyIds.clear();
     m_enemyIds.reserve(count);
 
-    constexpr float kSpawnWidth = 75.f;
-    constexpr float kSpawnDepth = 50.f;
+    constexpr float kSpawnWidth = 2.f;
+    constexpr float kSpawnDepth = 2.f;
 
     for (int index = 0; index < count; ++index)
     {

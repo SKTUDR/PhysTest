@@ -48,7 +48,7 @@ namespace ECS
         rb.SetFreezeRotation(true);                             // プレイヤーは回転させない
         rb.restitution = 0.3f;
         rb.staticFriction = 0.8f;
-        rb.kineticFriction = 0.5f;
+        rb.kineticFriction = 0.7f;
         rb.linearDamping = 4.f;
 
         auto& ren = m_world.GetComponent<ModelRenderComp>(eid);
@@ -79,7 +79,7 @@ namespace ECS
         rb.SetFreezeRotation(false);                        
         rb.restitution = 0.3f;
         rb.staticFriction = 0.8f;
-        rb.kineticFriction = 0.5f;
+        rb.kineticFriction = 0.9f;
 
         auto& ren = m_world.GetComponent<ModelRenderComp>(eid);
         ren.visible = true;

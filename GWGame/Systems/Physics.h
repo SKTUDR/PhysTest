@@ -302,8 +302,8 @@ namespace ECS
                 const float denomT = invMassA + invMassB + inertTA + inertTB;
 
                 // 摩擦係数
-                const float muS = std::sqrt((rbA ? rbA->staticFriction : 0.f) * (rbB ? rbB->staticFriction : 0.f));
-                const float muK = std::sqrt((rbA ? rbA->kineticFriction : 0.f) * (rbB ? rbB->kineticFriction : 0.f));
+                const float muS = std::sqrt((rbA ? rbA->staticFriction : 1.f) * (rbB ? rbB->staticFriction : 1.f));
+                const float muK = std::sqrt((rbA ? rbA->kineticFriction : .8f) * (rbB ? rbB->kineticFriction : .8f));
 
                 // 理想摩擦インパルス
                 const float jtIdeal = -vRelT / denomT;
@@ -315,6 +315,10 @@ namespace ECS
                     jt = jtIdeal; // 静止摩擦: 完全に止める
                 else
                     jt = (jtIdeal > 0.f) ? maxKinetic : -maxKinetic;
+
+                OutputDebugStringA(("j=" + std::to_string(j) + " jtIdeal=" + std::to_string(jtIdeal) +
+                                    " maxKinetic=" + std::to_string(maxKinetic) + "\n")
+                                       .c_str());
 
                 // 摩擦インパルス
                 const DirectX::SimpleMath::Vector3 fImpulse = t * jt;
