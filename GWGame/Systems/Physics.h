@@ -237,19 +237,6 @@ namespace ECS
             const DirectX::SimpleMath::Matrix iWorldInvB =
                 rbB ? rbB->CalcWorldInvInertia(rotB) : DirectX::SimpleMath::Matrix::Identity;
 
-            // InertiaTerm: I_world_inv * (r × axis) × r)・axis
-            auto InertiaTerm = [](const DirectX::SimpleMath::Vector3& r, const DirectX::SimpleMath::Vector3& axis,
-                                  const DirectX::SimpleMath::Matrix& iWorldInv, bool frozen) -> float
-            {
-                if (frozen)
-                    return 0.f;
-                const DirectX::SimpleMath::Vector3 rCrossAxis = r.Cross(axis);
-                // I_world_inv * (r × axis)
-                const DirectX::SimpleMath::Vector3 iRCrossAxis =
-                    DirectX::SimpleMath::Vector3::Transform(rCrossAxis, iWorldInv);
-                return iRCrossAxis.Cross(r).Dot(axis);
-            };
-
             const float inertiaA = rbA ? InertiaTerm(rA, n, iWorldInvA, frozenA) : 0.f;
             const float inertiaB = rbB ? InertiaTerm(rB, n, iWorldInvB, frozenB) : 0.f;
 
@@ -316,9 +303,9 @@ namespace ECS
                 else
                     jt = (jtIdeal > 0.f) ? maxKinetic : -maxKinetic;
 
-                OutputDebugStringA(("j=" + std::to_string(j) + " jtIdeal=" + std::to_string(jtIdeal) +
-                                    " maxKinetic=" + std::to_string(maxKinetic) + "\n")
-                                       .c_str());
+                //OutputDebugStringA(("j=" + std::to_string(j) + " jtIdeal=" + std::to_string(jtIdeal) +
+                //                    " maxKinetic=" + std::to_string(maxKinetic) + "\n")
+                //                       .c_str());
 
                 // 摩擦インパルス
                 const DirectX::SimpleMath::Vector3 fImpulse = t * jt;
@@ -386,7 +373,12 @@ namespace ECS
             const DirectX::SimpleMath::Matrix iWorldInvB =
                 rbB ? rbB->CalcWorldInvInertia(trB.rotation) : DirectX::SimpleMath::Matrix::Identity;
 
-            float denom = invMassA + invMassB;
+            
+
+            const float inertiaA = rbA ? InertiaTerm(rA, n, iWorldInvA, rbA->FreezeRotation()) : 0.f;
+            const float inertiaB = rbB ? InertiaTerm(rB, n, iWorldInvB, rbB->FreezeRotation()) : 0.f;
+
+            float denom = invMassA + invMassB + inertiaA + inertiaB;
             if (denom < 1e-8f)
                 return;
 
@@ -428,6 +420,17 @@ namespace ECS
             }
 
             return tr.position;
+        }
+        static float InertiaTerm(const DirectX::SimpleMath::Vector3& r, const DirectX::SimpleMath::Vector3& axis,
+            const DirectX::SimpleMath::Matrix& iWorldInv, bool frozen)
+        {
+            if (frozen)
+                return 0.f;
+            const DirectX::SimpleMath::Vector3 rCrossAxis = r.Cross(axis);
+            // I_world_inv * (r × axis)
+            const DirectX::SimpleMath::Vector3 iRCrossAxis =
+                DirectX::SimpleMath::Vector3::Transform(rCrossAxis, iWorldInv);
+            return iRCrossAxis.Cross(r).Dot(axis);
         }
     };
 

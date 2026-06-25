@@ -106,7 +106,7 @@ void SceneB::CreateSceneObject()
                                         DirectX::SimpleMath::Quaternion::Identity,
                                         DirectX::SimpleMath::Vector3{100.f, 3.f, 100.f});
 
-    constexpr int kSpawnCount = 20;
+    constexpr int kSpawnCount = 500;
     SpawnEnemies(kSpawnCount);
 
     m_cameraId = m_factory->CreatePlayerFollowCamera();

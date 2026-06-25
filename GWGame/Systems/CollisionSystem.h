@@ -81,6 +81,18 @@ namespace ECS
     //  最大 4 点の接触点を生成する。
     // ============================================================================
 
+    inline float GetAxisValue(const DirectX::SimpleMath::Vector3& v, int axis) noexcept
+    {
+        switch (axis)
+        {
+            case 0:
+                return v.x;
+            case 1:
+                return v.y;
+            default:
+                return v.z;
+        }
+    }
     // 参照面の 4 頂点を返す
     // faceAxis: 0=X, 1=Y, 2=Z  sign: +1/-1
     inline std::array<DirectX::SimpleMath::Vector3, 4> GetFaceVertices(const OBBData& obb, int faceAxis,
@@ -88,13 +100,13 @@ namespace ECS
     {
         // 参照面の中心
         const DirectX::SimpleMath::Vector3 faceCenter =
-            obb.center + obb.axes[faceAxis] * (obb.halfExtents.ToArray()[faceAxis] * sign);
+            obb.center + obb.axes[faceAxis] * (GetAxisValue(obb.halfExtents, faceAxis) * sign);
 
         // 残り 2 軸
         const int a1 = (faceAxis + 1) % 3;
         const int a2 = (faceAxis + 2) % 3;
-        const DirectX::SimpleMath::Vector3 e1 = obb.axes[a1] * obb.halfExtents.ToArray()[a1];
-        const DirectX::SimpleMath::Vector3 e2 = obb.axes[a2] * obb.halfExtents.ToArray()[a2];
+        const DirectX::SimpleMath::Vector3 e1 = obb.axes[a1] * GetAxisValue(obb.halfExtents, a1);
+        const DirectX::SimpleMath::Vector3 e2 = obb.axes[a2] * GetAxisValue(obb.halfExtents, a2);
 
         return {faceCenter + e1 + e2, faceCenter - e1 + e2, faceCenter - e1 - e2, faceCenter + e1 - e2};
     }
@@ -150,6 +162,7 @@ namespace ECS
         }
         const float refSign = (refOBB.axes[refFaceAxis].Dot(normal) > 0.f) ? 1.f : -1.f;
         const DirectX::SimpleMath::Vector3 refFaceNormal = refOBB.axes[refFaceAxis] * refSign;
+        const DirectX::SimpleMath::Vector3 refFaceCenter = refOBB.center + refOBB.axes[refFaceAxis] * (GetAxisValue(refOBB.halfExtents, refFaceAxis) * refSign);
 
         // ---- 入射面を選択（-normal に最も近い incOBB の面）---------------------
         int incFaceAxis = 0;
@@ -164,6 +177,9 @@ namespace ECS
             }
         }
         const float incSign = (incOBB.axes[incFaceAxis].Dot(normal) < 0.f) ? 1.f : -1.f;
+        DirectX::SimpleMath::Vector3 incFaceNormal = incOBB.axes[incFaceAxis] * incSign;
+        DirectX::SimpleMath::Vector3 incFaceCenter =
+            incOBB.center + incFaceNormal * GetAxisValue(incOBB.halfExtents, incFaceAxis);
 
         // ---- 入射面の 4 頂点取得 ------------------------------------------------
         const auto incVertices = GetFaceVertices(incOBB, incFaceAxis, incSign);
@@ -175,7 +191,7 @@ namespace ECS
             if (i == refFaceAxis)
                 continue;
             const DirectX::SimpleMath::Vector3& sideAxis = refOBB.axes[i];
-            const float halfExt = refOBB.halfExtents.ToArray()[i];
+            const float halfExt = GetAxisValue(refOBB.halfExtents, i);
             const float sideD = refOBB.center.Dot(sideAxis);
 
             poly = ClipPolygonByPlane(poly, sideAxis, sideD - halfExt);
@@ -187,7 +203,7 @@ namespace ECS
         }
 
         // ---- 参照面より下にある点を接触点として採用 ----------------------------
-        const float refFaceD = refOBB.center.Dot(refFaceNormal) + refOBB.halfExtents.ToArray()[refFaceAxis];
+        const float refFaceD = refOBB.center.Dot(refFaceNormal) + GetAxisValue(refOBB.halfExtents, refFaceAxis);
 
         for (const auto& v : poly)
         {
@@ -198,8 +214,12 @@ namespace ECS
             ContactPoint cp;
             cp.normal = normal;
             cp.depth = penetration;
-            cp.positionB = v;                        // 入射面上の点
-            cp.positionA = v + normal * penetration; // 参照面上の対応点
+            float distB = (v - incFaceCenter).Dot(incFaceNormal);
+            cp.positionB = v - incFaceNormal * distB;
+            //cp.positionB = v;                        // 入射面上の点
+            float dist = (v - refFaceCenter).Dot(refFaceNormal);
+            cp.positionA = v - refFaceNormal * dist;
+            //cp.positionA = v + normal * penetration; // 参照面上の対応点
             cp.position = (cp.positionA + cp.positionB) * 0.5f;
             result.AddContact(cp);
         }
@@ -585,6 +605,8 @@ namespace ECS
         std::vector<const Entry*> m_entryLookup;
         std::vector<SweepAndPrune::Entry> m_sapEntries;
 
+        
+
         static bool DispatchNarrow(const ColliderComp& colA, const DirectX::SimpleMath::Vector3& posA,
                                    const ColliderComp& colB, const DirectX::SimpleMath::Vector3& posB,
                                    ContactPoint& out)
@@ -617,6 +639,7 @@ namespace ECS
                                           out);
             return false;
         }
+        
     };
 
 } // namespace ECS
