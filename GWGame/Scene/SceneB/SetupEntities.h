@@ -47,6 +47,9 @@ namespace ECS
         EntityID CreateEnemy(Graphics::ModelID modelId, const DirectX::SimpleMath::Vector3& position,
                              const DirectX::SimpleMath::Vector3& scale, float mass = 1.0f);
 
+        EntityID CreateRubble(Graphics::ModelID modelId, const DirectX::SimpleMath::Vector3& position,
+                              const DirectX::SimpleMath::Vector3& scale, float mass);
+
         EntityID CreateGround(Graphics::ModelID modelId, const DirectX::SimpleMath::Vector3& position,
                               const DirectX::SimpleMath::Quaternion& rotation,
                               const DirectX::SimpleMath::Vector3& scale);

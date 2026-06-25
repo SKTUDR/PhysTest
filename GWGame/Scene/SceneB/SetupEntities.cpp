@@ -78,8 +78,39 @@ namespace ECS
         rb.SetMassAndInertia(60.f, {col.GetHalfExtents()}); // コライダーサイズに合わせて質量と慣性を設定
         rb.SetFreezeRotation(false);                        
         rb.restitution = 0.3f;
-        rb.staticFriction = 0.8f;
-        rb.kineticFriction = 0.9f;
+        rb.staticFriction = 0.6f;
+        rb.kineticFriction = 0.3f;
+
+        auto& ren = m_world.GetComponent<ModelRenderComp>(eid);
+        ren.visible = true;
+
+        // Tag
+        m_world.AddComponent<EnemyTagComp>(eid);
+        m_world.AddComponent<CastShadowComp>(eid);
+
+        return eid;
+
+    }
+    EntityID EntityFactory::CreateRubble(Graphics::ModelID modelId, const DirectX::SimpleMath::Vector3& position,
+                                        const DirectX::SimpleMath::Vector3& scale,
+                                        float mass)
+    {
+        ECS::EntityID eid = CreateRenderableEntity(modelId, position, DirectX::SimpleMath::Quaternion::Identity, scale);
+
+        auto& col = m_world.AddComponent<ColliderComp>(eid);
+
+        col.shape = OBB{.halfExtents = {.5f, .5f, .5f}, .orientation = DirectX::SimpleMath::Quaternion::Identity};
+        col.layer = CollisionLayer::RUBBLE;
+        col.mask = CollisionLayer::ALL;
+        col.localOffset = {0.f, 0.f, 0.f};
+
+        auto& rb = m_world.AddComponent<RigidbodyComp>(eid); // デフォルトで質量1、重力有効、非運動体
+        rb.isKinematic = true;
+        rb.SetMassAndInertia(60.f, {col.GetHalfExtents()}); // コライダーサイズに合わせて質量と慣性を設定
+        rb.SetFreezeRotation(false);                        
+        rb.restitution = 0.3f;
+        rb.staticFriction = 0.6f;
+        rb.kineticFriction = 0.3f;
 
         auto& ren = m_world.GetComponent<ModelRenderComp>(eid);
         ren.visible = true;

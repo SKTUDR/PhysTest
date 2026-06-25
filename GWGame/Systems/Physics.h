@@ -32,7 +32,7 @@ namespace ECS
         {
             DirectX::SimpleMath::Vector3 gravity = {0.f, -9.81f , 0.f};
             float sleepThreshold = 0.01f;
-            int solverIterations = 10;
+            int solverIterations = 18;
             // 位置補正パラメータ（スラブ法）
             // SLOP: 許容する最小貫通深度。小さすぎるとジッター、大きすぎると浮く。
             float positionSlop = 0.005f;
@@ -161,6 +161,27 @@ namespace ECS
         // ---- 速度インパルスのみ（反復ループ内で呼ぶ）---------------------------
         void ResolveImpulse(World& world, const CollisionResult& result, float dt)
         {
+            for (int i = 0; i < result.contactCount; ++i)
+            {
+                const ContactPoint& cp = result.contacts[i];
+                ResolveImpulseOne(world, result, dt, cp);
+            }
+            
+        }
+
+        // ---- 位置補正のみ（ループ外で1回だけ呼ぶ）-----------------------------
+        void ResolvePosition(World& world, const CollisionResult& result)
+        {
+            for (int i = 0; i < result.contactCount; ++i)
+            {
+                const ContactPoint& cp = result.contacts[i];
+                ResolvePositionOne(world, result, cp);
+            }
+            
+        }
+
+        void ResolveImpulseOne(World& world, const CollisionResult& result, float dt, const ContactPoint& cp)
+        {
             if (!world.IsAlive(result.eid_a) || !world.IsAlive(result.eid_b))
                 return;
 
@@ -194,11 +215,11 @@ namespace ECS
 
             // 重心 → 接触点ベクトル
             // 回転速度計算に必要
-            const DirectX::SimpleMath::Vector3 rA = result.contact.positionA - centerA;
-            const DirectX::SimpleMath::Vector3 rB = result.contact.positionB - centerB;
+            const DirectX::SimpleMath::Vector3 rA = cp.positionA - centerA;
+            const DirectX::SimpleMath::Vector3 rB = cp.positionB - centerB;
 
              // 衝突法線
-            const DirectX::SimpleMath::Vector3 n = result.contact.normal;
+            const DirectX::SimpleMath::Vector3 n = cp.normal;
 
             // 接触点での速度
             // 回転している物体は端ほど速く動くため、
@@ -323,9 +344,7 @@ namespace ECS
                     rbB->ApplyAngularImpulse(rB.Cross(-fImpulse), rotB);
             }
         }
-
-        // ---- 位置補正のみ（ループ外で1回だけ呼ぶ）-----------------------------
-        void ResolvePosition(World& world, const CollisionResult& result)
+        void ResolvePositionOne(World& world, const CollisionResult& result, const ContactPoint& cp)
         {
             if (!world.IsAlive(result.eid_a) || !world.IsAlive(result.eid_b))
                 return;
@@ -351,7 +370,7 @@ namespace ECS
             if (invMassSum < 1e-8f)
                 return;
 
-            const float depth = result.contact.depth;
+            const float depth = cp.depth;
 
             if (depth <= m_params.positionSlop)
                 return;
@@ -363,17 +382,15 @@ namespace ECS
             const DirectX::SimpleMath::Vector3 centerA = GetColliderCenter(world, result.eid_a);
             const DirectX::SimpleMath::Vector3 centerB = GetColliderCenter(world, result.eid_b);
 
-            DirectX::SimpleMath::Vector3 rA = result.contact.positionA - centerA;
-            DirectX::SimpleMath::Vector3 rB = result.contact.positionB - centerB;
-            DirectX::SimpleMath::Vector3 n = result.contact.normal;
+            DirectX::SimpleMath::Vector3 rA = cp.positionA - centerA;
+            DirectX::SimpleMath::Vector3 rB = cp.positionB - centerB;
+            DirectX::SimpleMath::Vector3 n = cp.normal;
 
             // 2. 回転を考慮した位置補正用の分母（Inertia項）を計算
             const DirectX::SimpleMath::Matrix iWorldInvA =
                 rbA ? rbA->CalcWorldInvInertia(trA.rotation) : DirectX::SimpleMath::Matrix::Identity;
             const DirectX::SimpleMath::Matrix iWorldInvB =
                 rbB ? rbB->CalcWorldInvInertia(trB.rotation) : DirectX::SimpleMath::Matrix::Identity;
-
-            
 
             const float inertiaA = rbA ? InertiaTerm(rA, n, iWorldInvA, rbA->FreezeRotation()) : 0.f;
             const float inertiaB = rbB ? InertiaTerm(rB, n, iWorldInvB, rbB->FreezeRotation()) : 0.f;
@@ -387,7 +404,7 @@ namespace ECS
             float pJ = ((depth - m_params.positionSlop) * m_params.positionCorrection) / denom;
 
             DirectX::SimpleMath::Vector3 pImpulse = n * pJ;
-            //OutputDebugStringA(std::to_string(pImpulse.y).c_str());
+            // OutputDebugStringA(std::to_string(pImpulse.y).c_str());
 
             // 4. 重心位置の補正（平行移動）
             if (rbA)

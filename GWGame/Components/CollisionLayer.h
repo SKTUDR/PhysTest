@@ -15,7 +15,7 @@ enum class CollisionLayer : uint32_t {
     WORLD       = 1u << 0,   // 静的地形・床・壁
     PLAYER      = 1u << 1,   // プレイヤー
     ENEMY       = 1u << 2,   // 敵
-    ROCK        = 1u << 3,   // 瓦礫
+    RUBBLE        = 1u << 3,   // 瓦礫
     STONE       = 1u << 4,   // 石
 
     ALL         = ~0u,
