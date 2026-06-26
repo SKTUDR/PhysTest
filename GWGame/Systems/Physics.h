@@ -35,12 +35,9 @@ namespace ECS
             int solverIterations = 18;
             // 位置補正パラメータ（スラブ法）
             // SLOP: 許容する最小貫通深度。小さすぎるとジッター、大きすぎると浮く。
-            float positionSlop = 0.005f;
+            float positionSlop = 0.001f;
             // CORRECTION: 補正率 [0-1]。1.0 だと過補正でガタつく。0.2〜0.4 が安定。z
             float positionCorrection = .2f;
-
-
-            bool useGravity = true;
         };
 
         explicit PhysicsSystem(Params params = {}) : m_params(params)
@@ -160,13 +157,12 @@ namespace ECS
 
         // ---- 速度インパルスのみ（反復ループ内で呼ぶ）---------------------------
         void ResolveImpulse(World& world, const CollisionResult& result, float dt)
-        {
+        {            
             for (int i = 0; i < result.contactCount; ++i)
             {
                 const ContactPoint& cp = result.contacts[i];
                 ResolveImpulseOne(world, result, dt, cp);
             }
-            
         }
 
         // ---- 位置補正のみ（ループ外で1回だけ呼ぶ）-----------------------------
@@ -177,7 +173,6 @@ namespace ECS
                 const ContactPoint& cp = result.contacts[i];
                 ResolvePositionOne(world, result, cp);
             }
-            
         }
 
         void ResolveImpulseOne(World& world, const CollisionResult& result, float dt, const ContactPoint& cp)
@@ -199,8 +194,6 @@ namespace ECS
                 rbB = nullptr;
             if (!rbA && !rbB)
                 return;
-
-            
 
             // 逆質量取得
             // invMass = 0 の物体は「無限質量」とみなされる
@@ -370,7 +363,7 @@ namespace ECS
             if (invMassSum < 1e-8f)
                 return;
 
-            const float depth = cp.depth;
+             const float depth = cp.depth;
 
             if (depth <= m_params.positionSlop)
                 return;
@@ -386,22 +379,15 @@ namespace ECS
             DirectX::SimpleMath::Vector3 rB = cp.positionB - centerB;
             DirectX::SimpleMath::Vector3 n = cp.normal;
 
-            // 2. 回転を考慮した位置補正用の分母（Inertia項）を計算
-            const DirectX::SimpleMath::Matrix iWorldInvA =
-                rbA ? rbA->CalcWorldInvInertia(trA.rotation) : DirectX::SimpleMath::Matrix::Identity;
-            const DirectX::SimpleMath::Matrix iWorldInvB =
-                rbB ? rbB->CalcWorldInvInertia(trB.rotation) : DirectX::SimpleMath::Matrix::Identity;
-
-            const float inertiaA = rbA ? InertiaTerm(rA, n, iWorldInvA, rbA->FreezeRotation()) : 0.f;
-            const float inertiaB = rbB ? InertiaTerm(rB, n, iWorldInvB, rbB->FreezeRotation()) : 0.f;
-
-            float denom = invMassA + invMassB + inertiaA + inertiaB;
+            // 2. 位置補正用の分母を計算
+            float denom = invMassA + invMassB;
             if (denom < 1e-8f)
                 return;
 
             // 3. 疑似位置インパルス（マニチュード）の計算
             // positionCorrection は 正の値（0.2〜0.8程度）にしてください
-            float pJ = ((depth - m_params.positionSlop) * m_params.positionCorrection) / denom;
+            float pJ = (((depth - m_params.positionSlop) * m_params.positionCorrection) / denom);
+            pJ /= result.contactCount;
 
             DirectX::SimpleMath::Vector3 pImpulse = n * pJ;
             // OutputDebugStringA(std::to_string(pImpulse.y).c_str());
@@ -411,6 +397,14 @@ namespace ECS
                 world.GetComponent<TransformComp>(result.eid_a).position += -pImpulse * invMassA;
             if (rbB)
                 world.GetComponent<TransformComp>(result.eid_b).position -= -pImpulse * invMassB;
+
+            if (rbA && !rbA->FreezeRotation())
+            {
+            }
+            if (rbB && !rbB->FreezeRotation())
+            {
+
+            }
         }
 
         // ---- 角速度 → TransformComp::rotation -----------------------------

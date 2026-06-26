@@ -221,6 +221,7 @@ namespace ECS
             cp.positionA = v - refFaceNormal * dist;
             //cp.positionA = v + normal * penetration; // 参照面上の対応点
             cp.position = (cp.positionA + cp.positionB) * 0.5f;
+
             result.AddContact(cp);
         }
 

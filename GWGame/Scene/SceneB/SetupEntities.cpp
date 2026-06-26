@@ -106,7 +106,7 @@ namespace ECS
 
         auto& rb = m_world.AddComponent<RigidbodyComp>(eid); // デフォルトで質量1、重力有効、非運動体
         rb.isKinematic = true;
-        rb.SetMassAndInertia(60.f, {col.GetHalfExtents()}); // コライダーサイズに合わせて質量と慣性を設定
+        rb.SetMassAndInertia(10.f, {col.GetHalfExtents()}); // コライダーサイズに合わせて質量と慣性を設定
         rb.SetFreezeRotation(false);                        
         rb.restitution = 0.3f;
         rb.staticFriction = 0.6f;

@@ -123,7 +123,7 @@ namespace ECS
         void ApplyAngularImpulse(const DirectX::SimpleMath::Vector3& angularImpulse,
                                  const DirectX::SimpleMath::Quaternion& rot) noexcept
         {
-            if (isKinematic)
+            if (isKinematic || FreezeRotation())
                 return;
 
             const DirectX::SimpleMath::Matrix iWorldInv = CalcWorldInvInertia(rot);
