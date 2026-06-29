@@ -74,9 +74,9 @@ void SceneB::OnEnter(GameContext& gameContext)
 }
 
 
-ECS::EntityID SceneB::SpawnEnemy(DirectX::SimpleMath::Vector3 pos)
+ECS::EntityID SceneB::SpawnRubble(DirectX::SimpleMath::Vector3 pos)
 {
-    ECS::EntityID eid = m_factory->CreateEnemy(m_itemModelId, pos, SimpleMath::Vector3{.5f,.5f,.5f}, RandomGenerator::GetInstance().RandFloat(0.0f, 1.0f));
+    ECS::EntityID eid = m_factory->CreateRubble(m_itemModelId, pos, SimpleMath::Vector3{.5f,.5f,.5f}, RandomGenerator::GetInstance().RandFloat(0.0f, 1.0f));
 
     return eid;
 }
@@ -106,8 +106,8 @@ void SceneB::CreateSceneObject()
                                         DirectX::SimpleMath::Quaternion::Identity,
                                         DirectX::SimpleMath::Vector3{100.f, 3.f, 100.f});
 
-    constexpr int kSpawnCount = 20;
-    SpawnEnemies(kSpawnCount);
+    constexpr int kSpawnCount = 500;
+    SpawnRubbles(kSpawnCount);
 
     m_cameraId = m_factory->CreatePlayerFollowCamera();
 }
@@ -143,7 +143,7 @@ void SceneB::UpdateGame(Imase::ISceneController<SceneId>& sceneController, GameC
     m_gameDirector.Update(sceneController, m_world, gameContext);
 }
 
-void SceneB::SpawnEnemies(int count)
+void SceneB::SpawnRubbles(int count)
 {
     constexpr int kColumns = 3;
     constexpr float kRowSpacing = 2.0f;
@@ -152,8 +152,8 @@ void SceneB::SpawnEnemies(int count)
 
     auto& rng = RandomGenerator::GetInstance();
 
-    m_enemyIds.clear();
-    m_enemyIds.reserve(count);
+    m_rubbleIds.clear();
+    m_rubbleIds.reserve(count);
 
     constexpr float kSpawnWidth = 2.f;
     constexpr float kSpawnDepth = 2.f;
@@ -165,8 +165,8 @@ void SceneB::SpawnEnemies(int count)
         const DirectX::SimpleMath::Vector3 position{rng.RandFloat(-kSpawnWidth, kSpawnWidth), kStartY + row * kRowSpacing,
                                                     kBaseZ + rng.RandFloat(-kSpawnDepth, kSpawnDepth)};
 
-        ECS::EntityID eid = SpawnEnemy(position);
+        ECS::EntityID eid = SpawnRubble(position);
 
-        m_enemyIds.push_back(eid);
+        m_rubbleIds.push_back(eid);
     }
 }

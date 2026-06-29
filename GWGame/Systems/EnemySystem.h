@@ -25,7 +25,6 @@ namespace ECS
                     {
                         rb.isKinematic = false;
                     }
-
                 });
            
         };

@@ -32,12 +32,16 @@ using EntityRaw = uint32_t;
 
         static EntityID Null() noexcept { return EntityID{ NULL_INDEX }; }
 
+        [[nodiscard]]
         uint32_t Index()      const noexcept { return value & INDEX_MASK; }
         uint8_t  Generation() const noexcept { return static_cast<uint8_t>(value >> INDEX_BITS); }
         bool     IsNull()    const noexcept { return Index() == NULL_INDEX; }
 
         bool operator==(EntityID o) const noexcept { return value == o.value; }
         bool operator!=(EntityID o) const noexcept { return value != o.value; }
+
+        // C++20~
+        //auto operator<=>(const EntityID& o) const { return value == o.value; }
     };
 
 } // namespace ECS

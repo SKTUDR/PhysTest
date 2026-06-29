@@ -10,7 +10,7 @@
 
 namespace ECS
 {   
-    EntityID EntityFactory::CreateRenderableEntity(Graphics::ModelID modelId,
+    EntityID EntityFactory::CreateEntity(Graphics::ModelID modelId,
                                                    const DirectX::SimpleMath::Vector3& position,
                                                    const DirectX::SimpleMath::Quaternion& rotation,
                                                    const DirectX::SimpleMath::Vector3& scale)
@@ -22,6 +22,9 @@ namespace ECS
         tr.rotation = rotation;
         tr.scale = scale;
 
+        auto& local = m_world.AddComponent<LocalTransformComp>(eid);
+        local.localPosition = position;
+
         auto& ren = m_world.AddComponent<ModelRenderComp>(eid);
         ren.modelId = modelId;
 
@@ -32,7 +35,7 @@ namespace ECS
                                               const DirectX::SimpleMath::Quaternion& rotation,
                                               const DirectX::SimpleMath::Vector3& scale)
     {
-        EntityID eid = CreateRenderableEntity(modelId, position, rotation, scale);
+        EntityID eid = CreateEntity(modelId, position, rotation, scale);
 
 
         auto& col = m_world.AddComponent<ColliderComp>(eid);
@@ -64,7 +67,7 @@ namespace ECS
                                         const DirectX::SimpleMath::Vector3& scale,
                                         float mass)
     {
-        ECS::EntityID eid = CreateRenderableEntity(modelId, position, DirectX::SimpleMath::Quaternion::Identity, scale);
+        ECS::EntityID eid = CreateEntity(modelId, position, DirectX::SimpleMath::Quaternion::Identity, scale);
 
         auto& col = m_world.AddComponent<ColliderComp>(eid);
 
@@ -76,7 +79,7 @@ namespace ECS
         auto& rb = m_world.AddComponent<RigidbodyComp>(eid); // デフォルトで質量1、重力有効、非運動体
         rb.isKinematic = true;
         rb.SetMassAndInertia(60.f, {col.GetHalfExtents()}); // コライダーサイズに合わせて質量と慣性を設定
-        rb.SetFreezeRotation(false);                        
+        rb.SetFreezeRotation(true);                        
         rb.restitution = 0.3f;
         rb.staticFriction = 0.6f;
         rb.kineticFriction = 0.3f;
@@ -95,7 +98,7 @@ namespace ECS
                                         const DirectX::SimpleMath::Vector3& scale,
                                         float mass)
     {
-        ECS::EntityID eid = CreateRenderableEntity(modelId, position, DirectX::SimpleMath::Quaternion::Identity, scale);
+        ECS::EntityID eid = CreateEntity(modelId, position, DirectX::SimpleMath::Quaternion::Identity, scale);
 
         auto& col = m_world.AddComponent<ColliderComp>(eid);
 
@@ -127,7 +130,7 @@ namespace ECS
                                          const DirectX::SimpleMath::Quaternion& rotation = DirectX::SimpleMath::Quaternion::Identity,
                                          const DirectX::SimpleMath::Vector3& scale = {1.f, 1.f, .5f})
     {
-        ECS::EntityID eid = CreateRenderableEntity(modelId, position, rotation, scale);
+        ECS::EntityID eid = CreateEntity(modelId, position, rotation, scale);
 
         auto& coll = m_world.AddComponent<ColliderComp>(eid);
         coll.shape = OBB{.halfExtents = {100, 3, 100}, .orientation = rotation}; // モデルのサイズに合わせて調整

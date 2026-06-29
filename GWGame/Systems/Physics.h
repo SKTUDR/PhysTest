@@ -168,11 +168,12 @@ namespace ECS
         // ---- 位置補正のみ（ループ外で1回だけ呼ぶ）-----------------------------
         void ResolvePosition(World& world, const CollisionResult& result)
         {
-            for (int i = 0; i < result.contactCount; ++i)
-            {
-                const ContactPoint& cp = result.contacts[i];
-                ResolvePositionOne(world, result, cp);
-            }
+            ResolvePositionOne(world, result, result.contact);
+            //for (int i = 0; i < result.contactCount; ++i)
+            //{
+            //    const ContactPoint& cp = result.contacts[i];
+            //    ResolvePositionOne(world, result, cp);
+            //}
         }
 
         void ResolveImpulseOne(World& world, const CollisionResult& result, float dt, const ContactPoint& cp)
@@ -280,9 +281,9 @@ namespace ECS
 
             // 回転速度へ適用
             if (rbA)
-                rbA->ApplyAngularImpulse(rA.Cross(impulse), rotA);
+                rbA->ApplyAngularImpulse(rA.Cross(impulse) / result.contactCount, rotA);
             if (rbB)
-                rbB->ApplyAngularImpulse(-rB.Cross(impulse), rotB);
+                rbB->ApplyAngularImpulse(-rB.Cross(impulse) / result.contactCount, rotB);
 
             // ---- 摩擦 -----------------------------------------------------------
             const DirectX::SimpleMath::Vector3 tangent = vRel - n * vRelN;
@@ -316,10 +317,6 @@ namespace ECS
                     jt = jtIdeal; // 静止摩擦: 完全に止める
                 else
                     jt = (jtIdeal > 0.f) ? maxKinetic : -maxKinetic;
-
-                //OutputDebugStringA(("j=" + std::to_string(j) + " jtIdeal=" + std::to_string(jtIdeal) +
-                //                    " maxKinetic=" + std::to_string(maxKinetic) + "\n")
-                //                       .c_str());
 
                 // 摩擦インパルス
                 const DirectX::SimpleMath::Vector3 fImpulse = t * jt;
@@ -387,7 +384,6 @@ namespace ECS
             // 3. 疑似位置インパルス（マニチュード）の計算
             // positionCorrection は 正の値（0.2〜0.8程度）にしてください
             float pJ = (((depth - m_params.positionSlop) * m_params.positionCorrection) / denom);
-            pJ /= result.contactCount;
 
             DirectX::SimpleMath::Vector3 pImpulse = n * pJ;
             // OutputDebugStringA(std::to_string(pImpulse.y).c_str());
@@ -397,14 +393,6 @@ namespace ECS
                 world.GetComponent<TransformComp>(result.eid_a).position += -pImpulse * invMassA;
             if (rbB)
                 world.GetComponent<TransformComp>(result.eid_b).position -= -pImpulse * invMassB;
-
-            if (rbA && !rbA->FreezeRotation())
-            {
-            }
-            if (rbB && !rbB->FreezeRotation())
-            {
-
-            }
         }
 
         // ---- 角速度 → TransformComp::rotation -----------------------------

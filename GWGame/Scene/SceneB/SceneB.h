@@ -72,13 +72,11 @@ private:
 	ECS::EntityID m_playerId = ECS::EntityID::Null();
     ECS::EntityID m_cameraId = ECS::EntityID::Null();
 
-    
-
     ECS::EntityID m_sunId	 = ECS::EntityID::Null(); 
 
     //  ---- エネミー EntityID ------------------------------------------
     //  n体を vector で管理。
-    std::vector<ECS::EntityID> m_enemyIds;
+    std::vector<ECS::EntityID> m_rubbleIds;
 
     std::unique_ptr<Imase::GridFloor>   m_gridFloor;
 
@@ -102,7 +100,7 @@ private:
 	// =================================================================
     //  SpawnEnemy - 1体分の生成
     // =================================================================
-    ECS::EntityID SpawnEnemy(DirectX::SimpleMath::Vector3 pos);
+    ECS::EntityID SpawnRubble(DirectX::SimpleMath::Vector3 pos);
 
     void InitializeSystems(ID3D11Device* device, ID3D11DeviceContext* context);
     void LoadModels(ID3D11Device* device);
@@ -112,6 +110,6 @@ private:
 	// =================================================================
     //  SpawnEnemies - 格子状に配置
     // =================================================================
-    void SpawnEnemies(int count);
+    void SpawnRubbles(int count);
 };
 

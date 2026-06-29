@@ -148,6 +148,8 @@ namespace ECS
                                     const DirectX::SimpleMath::Vector3& normal, float depth,
                                     CollisionResult& result) noexcept
     {
+        float satDepth = depth;
+
         // ---- 参照面を選択（法線に最も近い refOBB の面）-------------------------
         int refFaceAxis = 0;
         float maxDot = std::abs(refOBB.axes[0].Dot(normal));
@@ -242,7 +244,9 @@ namespace ECS
         for (int i = 1; i < result.contactCount; ++i)
             if (result.contacts[i].depth > result.contacts[maxIdx].depth)
                 maxIdx = i;
-        result.contact = result.contacts[maxIdx];
+
+        result.contacts[maxIdx].depth = std::max(result.contacts[maxIdx].depth, satDepth);
+        result.contact.depth = depth;
     }
 
     // ---- OBB vs OBB（Gottschalk SAT 1996）--------------------------------------

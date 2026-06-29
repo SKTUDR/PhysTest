@@ -25,7 +25,7 @@ namespace ECS
         // ---- 基本: Transform + RenderComp だけのエンティティ -------------------
         // 最もシンプルな可視オブジェクト。
         // 戻り値の EntityID を呼び出し元で保持しておくと後から Component を追加できる。
-        EntityID CreateRenderableEntity(
+        EntityID CreateEntity(
             Graphics::ModelID modelId,
             const DirectX::SimpleMath::Vector3& position = {0.f, 0.f, 0.f},
             const DirectX::SimpleMath::Quaternion& rotation = DirectX::SimpleMath::Quaternion::Identity,

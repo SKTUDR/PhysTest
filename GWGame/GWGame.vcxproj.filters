@@ -208,6 +208,12 @@
     <ClInclude Include="Physics\SweepAndPrune.h">
       <Filter>Physics</Filter>
     </ClInclude>
+    <ClInclude Include="Components\Hierarchy.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\SceneGraphSystem.h">
+      <Filter>Systems</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
