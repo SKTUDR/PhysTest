@@ -67,6 +67,8 @@ namespace ECS
 
         void Flush()
         {
+            m_events.clear();
+
             m_events.insert(
                 m_events.end(),
                 m_pendingEvents.begin(),

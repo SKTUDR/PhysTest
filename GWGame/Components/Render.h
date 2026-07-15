@@ -71,7 +71,6 @@ struct ColorComp
 };
 
 // ---- ModelRenderComp -------------------------------------------------------------
-// ECS SoA に収まる純粋データ。unique_ptr は一切持たない。
 // ModelID は ModelRegistry への外部キー。
 // RenderSystem が毎フレーム registry.Get(modelId) で Model* を引く。
 // ----------------------------------------------------------------------------

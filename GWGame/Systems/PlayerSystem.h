@@ -13,7 +13,7 @@
 
 namespace ECS
 {
-    struct DeathEvent
+    struct PlayerDeathEvent
     {
         // 死んだことを通知するだけ
     };

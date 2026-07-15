@@ -11,6 +11,8 @@
 #include "Scene/SceneA/SceneA.h"
 #include "Scene/SceneB/SceneB.h"
 
+#include "Systems/InputBinding.h"
+
 extern void ExitGame() noexcept;
 
 using namespace DirectX;
@@ -41,6 +43,9 @@ void Game::Initialize(HWND window, int width, int height)
     m_deviceResources->CreateWindowSizeDependentResources();
     CreateWindowSizeDependentResources();
 
+    
+
+
     // TODO: Change the timer settings if you want something other than the default variable timestep mode.
     // e.g. for 60 FPS fixed timestep update logic, call:
     /*
@@ -52,7 +57,7 @@ void Game::Initialize(HWND window, int width, int height)
 
     DirectX::Mouse::Get().SetMode(DirectX::Mouse::MODE_RELATIVE);
 
-    ComPtr<IDXGISwapChain1> swapChain = m_deviceResources->GetSwapChain();
+   ComPtr<IDXGISwapChain1> swapChain = m_deviceResources->GetSwapChain();
     if (!swapChain)
         throw std::runtime_error("SwapChain missing");
 
@@ -88,7 +93,8 @@ void Game::Initialize(HWND window, int width, int height)
     m_screenViewport.TopLeftY = 0.f;
 
 
-
+    // 入力の初期化
+    m_inputSystem.AddBindings(Input::MakeDefaultBindings());
 
     // シーンの登録
     m_sceneManager.RegisterScene<BaseScene>(SceneId::BaseScene);
@@ -113,6 +119,7 @@ void Game::Initialize(HWND window, int width, int height)
         *m_deviceResources,
         m_keyboardTracker,
         m_mouseButtonTracker,
+        m_inputSystem,
         *m_states,
         *m_debugRenderer,
         *m_eventBus,
@@ -148,13 +155,19 @@ void Game::Update(DX::StepTimer const& timer)
     // TODO: Add your game logic here.
     elapsedTime;
 
-    // キーボードトラッカーの更新
+    //キーボードトラッカーの更新
     auto keyboard = Keyboard::Get().GetState();
     m_keyboardTracker.Update(keyboard);
 
     // マウスボタントラッカーの更新
     auto mouse = Mouse::Get().GetState();
     m_mouseButtonTracker.Update(mouse);
+
+    auto gp = GamePad::Get().GetState(0);
+    m_gpButtonTracker.Update(gp);
+
+    
+    m_inputSystem.Update(keyboard, mouse, gp);
 
     // シーンマネージャーの更新
     m_sceneManager.Update(*m_gameContext);
@@ -219,6 +232,7 @@ void Game::Clear()
 void Game::OnActivated()
 {
     // TODO: Game is becoming active window.
+    DirectX::Mouse::Get().SetMode(DirectX::Mouse::MODE_RELATIVE);
 }
 
 void Game::OnDeactivated()
@@ -285,7 +299,7 @@ void Game::CreateDeviceDependentResources()
     // コモンステートの作成
     m_states = std::make_unique<CommonStates>(device);
 
-     m_postProcess = std::make_unique<DirectX::BasicPostProcess>(device);
+    m_postProcess = std::make_unique<DirectX::BasicPostProcess>(device);
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.

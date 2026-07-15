@@ -17,6 +17,8 @@
 #include "GameContext.h"
 #include "Scene/SceneId.h"
 #include "ResourceManager/ShaderManager.h"
+#include "Systems/InputSystem.h"
+
 #include "KUtil/EventBus.h"
 
 // A basic game implementation that creates a D3D11 device and
@@ -82,6 +84,9 @@ private:
     // マウスボタントラッカー
     DirectX::Mouse::ButtonStateTracker m_mouseButtonTracker;
 
+    // ゲームパッドトラッカー
+    DirectX::GamePad::ButtonStateTracker m_gpButtonTracker;
+
     // コモンステート
     std::unique_ptr<DirectX::CommonStates> m_states;
 
@@ -113,7 +118,7 @@ private:
 
     IDXGISwapChain* m_swapChain;
 
-    
+    Input::InputSystem m_inputSystem;
 
     std::unique_ptr<DirectX::BasicPostProcess> m_postProcess;
 

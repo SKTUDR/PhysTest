@@ -11,6 +11,8 @@
 namespace ECS
 {
 
+    static constexpr float FAT = 0.1f;
+
     // ============================================================================
     //  ワールド空間 AABB
     // ============================================================================
@@ -29,12 +31,12 @@ namespace ECS
         if (col.IsAABB())
         {
             const auto& aabb = std::get<AABB>(col.shape);
-            out.minX = worldPos.x - aabb.halfExtents.x;
-            out.maxX = worldPos.x + aabb.halfExtents.x;
-            out.minY = worldPos.y - aabb.halfExtents.y;
-            out.maxY = worldPos.y + aabb.halfExtents.y;
-            out.minZ = worldPos.z - aabb.halfExtents.z;
-            out.maxZ = worldPos.z + aabb.halfExtents.z;
+            out.minX = (worldPos.x - aabb.halfExtents.x) - FAT;
+            out.maxX = (worldPos.x + aabb.halfExtents.x) + FAT;
+            out.minY = (worldPos.y - aabb.halfExtents.y) - FAT;
+            out.maxY = (worldPos.y + aabb.halfExtents.y) + FAT;
+            out.minZ = (worldPos.z - aabb.halfExtents.z) - FAT;
+            out.maxZ = (worldPos.z + aabb.halfExtents.z) + FAT;
         }
         else if (col.IsOBB())
         {
@@ -53,12 +55,12 @@ namespace ECS
             const float rz = std::abs(ax.z) * obb.halfExtents.x + std::abs(ay.z) * obb.halfExtents.y +
                              std::abs(az.z) * obb.halfExtents.z;
 
-            out.minX = worldPos.x - rx;
-            out.maxX = worldPos.x + rx;
-            out.minY = worldPos.y - ry;
-            out.maxY = worldPos.y + ry;
-            out.minZ = worldPos.z - rz;
-            out.maxZ = worldPos.z + rz;
+            out.minX = (worldPos.x - rx) - FAT;
+            out.maxX = (worldPos.x + rx) + FAT;
+            out.minY = (worldPos.y - ry) - FAT;
+            out.maxY = (worldPos.y + ry) + FAT;
+            out.minZ = (worldPos.z - rz) - FAT;
+            out.maxZ = (worldPos.z + rz) + FAT;
         }
         else if (col.IsCapsule())
         {

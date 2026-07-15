@@ -16,6 +16,8 @@
 #include "ResourceManager/ShaderManager.h"
 #include "KUtil/EventBus.h"
 
+#include "Systems/InputSystem.h"
+
 // 　ゲーム全体で共有するコンテキスト
 struct GameContext
 {
@@ -30,6 +32,9 @@ struct GameContext
 
 	// マウストラッカー
 	DirectX::Mouse::ButtonStateTracker& mouseButtonTracker;
+
+	// 入力システム
+	Input::InputSystem& m_inputSystem;
 
 	// コモンステート
 	DirectX::CommonStates& commonStates;

@@ -5,6 +5,7 @@
 #include "../../Components/GamePlay.h"
 #include "../../Components/Render.h"
 #include "../../Graphics/ModelRegistry.h"
+#include "../../Audio/AudioRegistry.h"
 
 #include <SimpleMath.h>
 
@@ -18,7 +19,8 @@ namespace ECS
     class EntityFactory
     {
     public:
-        EntityFactory(World& world, Graphics::ModelRegistry& registry) : m_world(world), m_registry(registry)
+        EntityFactory(World& world, Graphics::ModelRegistry& registry, Audio::AudioRegistry& audioRegistry)
+            : m_world(world), m_registry(registry), m_audioRegistry(audioRegistry)
         {
         }
 
@@ -36,7 +38,9 @@ namespace ECS
         //EntityID CreateRenderableEntity(Graphics::ModelID modelId, const DirectX::SimpleMath::Vector3& position);
         
 
-        EntityID CreatePlayer(Graphics::ModelID modelId, const DirectX::SimpleMath::Vector3& position,
+        EntityID CreatePlayer(Graphics::ModelID modelId,
+                     Audio::ClipID footClip,
+            const DirectX::SimpleMath::Vector3& position,
                      const DirectX::SimpleMath::Quaternion& rotation = DirectX::SimpleMath::Quaternion::Identity,
                      const DirectX::SimpleMath::Vector3& scale = {1.f, 1.f, 1.f});
 
@@ -48,7 +52,12 @@ namespace ECS
                              const DirectX::SimpleMath::Vector3& scale, float mass = 1.0f);
 
         EntityID CreateRubble(Graphics::ModelID modelId, const DirectX::SimpleMath::Vector3& position,
-                              const DirectX::SimpleMath::Vector3& scale, float mass);
+                              const DirectX::SimpleMath::Vector3& scale, float mass, EntityID parent = EntityID::Null());
+
+        EntityID CreateProjectile(Graphics::ModelID modelId, const DirectX::SimpleMath::Vector3& position,
+                                  const DirectX::SimpleMath::Vector3& scale,
+                                  const DirectX::SimpleMath::Vector3& direction,
+                                  float mass = 60.0f, EntityID parent = EntityID::Null());
 
         EntityID CreateGround(Graphics::ModelID modelId, const DirectX::SimpleMath::Vector3& position,
                               const DirectX::SimpleMath::Quaternion& rotation,
@@ -59,6 +68,8 @@ namespace ECS
                            DirectX::SimpleMath::Vector3 direction = {-0.5f, -1.f, -0.5f}
         );
 
+        EntityID CreateBGM(Audio::ClipID BGMClip = Audio::INVALID_CLIP_ID, float volume = 0.8f, bool loop = true, bool playOnStart = true, bool spatialize = false);
+
         EntityID CreateCamera(const DirectX::SimpleMath::Vector3& position = {0.f, 5.f, -10.f},
                      const DirectX::SimpleMath::Quaternion& rotation = DirectX::SimpleMath::Quaternion::Identity,
                      const int priority = 0,         
@@ -68,6 +79,12 @@ namespace ECS
                      const bool isPerspective = true,
                      const bool isActive = true
                      );
+
+        EntityID CreateEIDFollowCamera(
+            EntityID folEid, const DirectX::SimpleMath::Vector3& position = {0.f, 5.f, -10.f},
+            const DirectX::SimpleMath::Quaternion& rotation = DirectX::SimpleMath::Quaternion::Identity,
+            const int priority = 0, const float fov = DirectX::XMConvertToRadians(60.f), const float nearClip = 0.1f,
+            const float farClip = 1000.f, const bool isPerspective = true, const bool isActive = true);
 
         EntityID CreatePlayerFollowCamera(
             const DirectX::SimpleMath::Vector3& position = {0.f, 5.f, -10.f},
@@ -80,6 +97,7 @@ namespace ECS
     private:
         World& m_world;
         Graphics::ModelRegistry& m_registry;
+        Audio::AudioRegistry& m_audioRegistry;
     };
 
     

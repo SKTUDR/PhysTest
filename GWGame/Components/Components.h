@@ -11,3 +11,6 @@
 #include "Light.h"
 #include "CastShadow.h"
 #include "Camera.h"
+#include "Hierarchy.h"
+#include "AudioListener.h"
+#include "AudioSource.h"

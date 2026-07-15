@@ -487,18 +487,18 @@ namespace ECS
             m_sapEntries.clear();
             m_entryLookup.clear();
 
-            auto desc = QueryBuilder{}.All<TransformComp, ColliderComp>().Build();
-            world.Query(desc).Each<TransformComp, ColliderComp, RigidbodyComp>(
-                [&](EntityID eid, TransformComp& tr, ColliderComp& col, RigidbodyComp& rb)
+            auto desc = QueryBuilder{}.All<LocalTransformComp, ColliderComp>().Build();
+            world.Query(desc).Each<LocalTransformComp, ColliderComp, RigidbodyComp>(
+                [&](EntityID eid, LocalTransformComp& tr, ColliderComp& col, RigidbodyComp& rb)
                 {
-                    const DirectX::SimpleMath::Vector3 worldPos = {tr.position.x + col.localOffset.x,
-                                                                   tr.position.y + col.localOffset.y,
-                                                                   tr.position.z + col.localOffset.z};
+                    const DirectX::SimpleMath::Vector3 worldPos = {tr.localPosition.x + col.localOffset.x,
+                                                                   tr.localPosition.y + col.localOffset.y,
+                                                                   tr.localPosition.z + col.localOffset.z};
 
                     if (col.IsOBB())
                     {
                         auto& obb = std::get<OBB>(col.shape);
-                        obb.orientation = DirectX::SimpleMath::Quaternion::Concatenate(col.localRotation, tr.rotation);
+                        obb.orientation = DirectX::SimpleMath::Quaternion::Concatenate(col.localRotation, tr.localRotation);
                         UpdateOBBData(world, eid, worldPos, obb.halfExtents, obb.orientation);
                     }
                     if (col.IsAABB())
@@ -508,7 +508,7 @@ namespace ECS
                                       DirectX::SimpleMath::Quaternion::Identity);
                     }
 
-                    m_entries.push_back({eid, worldPos, tr.rotation, &col, &rb});
+                    m_entries.push_back({eid, worldPos, tr.localRotation, &col, &rb});
                 });
 
             // ---- Broad-phase ----------------------------------------------------

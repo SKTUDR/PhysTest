@@ -13,6 +13,14 @@
 
 namespace ECS
 {
+    struct PhysicsImpulseEvent
+    {
+        EntityID eid_a;
+        EntityID eid_b;
+
+        float impulse;
+        float tangentImpulse;
+    };
 
     // ============================================================================
     //  PhysicsSystem
@@ -32,12 +40,12 @@ namespace ECS
         {
             DirectX::SimpleMath::Vector3 gravity = {0.f, -9.81f , 0.f};
             float sleepThreshold = 0.01f;
-            int solverIterations = 18;
+            int solverIterations = 10;
             // 位置補正パラメータ（スラブ法）
             // SLOP: 許容する最小貫通深度。小さすぎるとジッター、大きすぎると浮く。
-            float positionSlop = 0.001f;
+            float positionSlop = 0.005f;
             // CORRECTION: 補正率 [0-1]。1.0 だと過補正でガタつく。0.2〜0.4 が安定。z
-            float positionCorrection = .2f;
+            float positionCorrection = 0.3f;
         };
 
         explicit PhysicsSystem(Params params = {}) : m_params(params)
@@ -75,9 +83,9 @@ namespace ECS
         // ---- 積分フェーズ（衝突応答の後に呼ぶ）---------------------------------
         void IntegrateVelocity(World& world, float dt)
         {
-            auto desc = QueryBuilder{}.All<TransformComp, RigidbodyComp>().Build();
-            world.Query(desc).ParallelEach<TransformComp, RigidbodyComp>(
-                [&](EntityID eid, TransformComp& tr, RigidbodyComp& rb)
+            auto desc = QueryBuilder{}.All<LocalTransformComp, RigidbodyComp>().Build();
+            world.Query(desc).ParallelEach<LocalTransformComp, RigidbodyComp>(
+                [&](EntityID eid, LocalTransformComp& tr, RigidbodyComp& rb)
                 {
                     if (rb.isKinematic)
                         return;
@@ -98,15 +106,15 @@ namespace ECS
 
                     // トルク ➔ 角速度
                     if (!rb.FreezeRotation())
-                        rb.IntegrateAngularVelocity(tr.rotation, dt);
+                        rb.IntegrateAngularVelocity(tr.localRotation, dt);
                 });
         }
 
         void IntegrateTransform(World& world, float dt)
         {
-            auto desc = QueryBuilder{}.All<TransformComp, RigidbodyComp>().Build();
-            world.Query(desc).ParallelEach<TransformComp, RigidbodyComp>(
-                [&](EntityID eid, TransformComp& tr, RigidbodyComp& rb)
+            auto desc = QueryBuilder{}.All<LocalTransformComp, RigidbodyComp>().Build();
+            world.Query(desc).ParallelEach<LocalTransformComp, RigidbodyComp>(
+                [&](EntityID eid, LocalTransformComp& tr, RigidbodyComp& rb)
                 {
                     if (rb.isKinematic)
                         return;
@@ -126,10 +134,12 @@ namespace ECS
                     }
 
                     // 確定した安全な速度で、位置と回転を更新
-                    tr.position += rb.velocity * dt;
+                    tr.localPosition += rb.velocity * dt;
                     if (rb.angularVelocity.LengthSquared() > 1e-12f)
                     {
                         ApplyAngularVelocity(tr, rb.angularVelocity, dt);
+
+                        rb.worldInvInertia = rb.CalcWorldInvInertia(tr.localRotation);
                     }
 
                     rb.ClearForces();
@@ -157,12 +167,23 @@ namespace ECS
 
         // ---- 速度インパルスのみ（反復ループ内で呼ぶ）---------------------------
         void ResolveImpulse(World& world, const CollisionResult& result, float dt)
-        {            
+        {   
+            float accumImpulse = 0.0f;
+            float accumTImpulse = 0.0f;
             for (int i = 0; i < result.contactCount; ++i)
             {
                 const ContactPoint& cp = result.contacts[i];
-                ResolveImpulseOne(world, result, dt, cp);
+                ResolveImpulseOne(world, result, dt, cp, accumImpulse, accumTImpulse);
             }
+
+             PhysicsImpulseEvent event
+                {
+                    result.eid_a,
+                    result.eid_b,
+
+                    accumImpulse, accumTImpulse
+                };
+                world.GetEventQueue().Push(std::move(event));
         }
 
         // ---- 位置補正のみ（ループ外で1回だけ呼ぶ）-----------------------------
@@ -176,7 +197,7 @@ namespace ECS
             //}
         }
 
-        void ResolveImpulseOne(World& world, const CollisionResult& result, float dt, const ContactPoint& cp)
+        void ResolveImpulseOne(World& world, const CollisionResult& result, float dt, const ContactPoint& cp, float& AI, float& ATI)
         {
             if (!world.IsAlive(result.eid_a) || !world.IsAlive(result.eid_b))
                 return;
@@ -238,19 +259,9 @@ namespace ECS
             const bool frozenB = rbB ? rbB->FreezeRotation() : true;
 
             // 回転慣性項
-            // rot を TransformComp から取得
-            const DirectX::SimpleMath::Quaternion rotA = world.HasComponent<TransformComp>(result.eid_a)
-                                                             ? world.GetComponent<TransformComp>(result.eid_a).rotation
-                                                             : DirectX::SimpleMath::Quaternion::Identity;
-            const DirectX::SimpleMath::Quaternion rotB = world.HasComponent<TransformComp>(result.eid_b)
-                                                             ? world.GetComponent<TransformComp>(result.eid_b).rotation
-                                                             : DirectX::SimpleMath::Quaternion::Identity;
+            const DirectX::SimpleMath::Matrix& iWorldInvA = rbA ? rbA->worldInvInertia : DirectX::SimpleMath::Matrix::Identity;
 
-            // ワールド空間の慣性テンソル逆行列
-            const DirectX::SimpleMath::Matrix iWorldInvA =
-                rbA ? rbA->CalcWorldInvInertia(rotA) : DirectX::SimpleMath::Matrix::Identity;
-            const DirectX::SimpleMath::Matrix iWorldInvB =
-                rbB ? rbB->CalcWorldInvInertia(rotB) : DirectX::SimpleMath::Matrix::Identity;
+            const DirectX::SimpleMath::Matrix& iWorldInvB = rbB ? rbB->worldInvInertia : DirectX::SimpleMath::Matrix::Identity;
 
             const float inertiaA = rbA ? InertiaTerm(rA, n, iWorldInvA, frozenA) : 0.f;
             const float inertiaB = rbB ? InertiaTerm(rB, n, iWorldInvB, frozenB) : 0.f;
@@ -266,12 +277,12 @@ namespace ECS
             const float baumgarte = 0.2f;
             const float slop = 0.01f;
 
-            //float bias = (baumgarte / dt) * std::max(result.contact.depth - slop, 0.f);
-
-            const float j = (-(1.f + restitution) * vRelN /* + bias*/) / denom;
+            const float j = (-(1.f + restitution) * vRelN) / denom / result.contactCount;
 
             // 法線方向インパルス
             const DirectX::SimpleMath::Vector3 impulse = n * j;
+
+            AI += j;
 
             // 線形速度へ適用
             if (rbA)
@@ -281,9 +292,9 @@ namespace ECS
 
             // 回転速度へ適用
             if (rbA)
-                rbA->ApplyAngularImpulse(rA.Cross(impulse) / result.contactCount, rotA);
+                rbA->ApplyAngularImpulse(rA.Cross(impulse));
             if (rbB)
-                rbB->ApplyAngularImpulse(-rB.Cross(impulse) / result.contactCount, rotB);
+                rbB->ApplyAngularImpulse(-rB.Cross(impulse));
 
             // ---- 摩擦 -----------------------------------------------------------
             const DirectX::SimpleMath::Vector3 tangent = vRel - n * vRelN;
@@ -308,7 +319,7 @@ namespace ECS
                 const float muK = std::sqrt((rbA ? rbA->kineticFriction : .8f) * (rbB ? rbB->kineticFriction : .8f));
 
                 // 理想摩擦インパルス
-                const float jtIdeal = -vRelT / denomT;
+                const float jtIdeal = (-vRelT / denomT) / result.contactCount;
                 const float maxStatic = muS * std::abs(j);
                 const float maxKinetic = muK * std::abs(j);
 
@@ -317,6 +328,8 @@ namespace ECS
                     jt = jtIdeal; // 静止摩擦: 完全に止める
                 else
                     jt = (jtIdeal > 0.f) ? maxKinetic : -maxKinetic;
+
+                ATI += jt;
 
                 // 摩擦インパルス
                 const DirectX::SimpleMath::Vector3 fImpulse = t * jt;
@@ -329,9 +342,11 @@ namespace ECS
 
                 // 摩擦による回転速度へ適用
                 if (rbA) 
-                    rbA->ApplyAngularImpulse(rA.Cross(fImpulse), rotA);
+                    rbA->ApplyAngularImpulse(rA.Cross(fImpulse));
                 if (rbB) 
-                    rbB->ApplyAngularImpulse(rB.Cross(-fImpulse), rotB);
+                    rbB->ApplyAngularImpulse(rB.Cross(-fImpulse));
+
+               
             }
         }
         void ResolvePositionOne(World& world, const CollisionResult& result, const ContactPoint& cp)
@@ -366,8 +381,8 @@ namespace ECS
                 return;
 
             // 1. 速度インパルスと同様に、接触点へのベクトルを計算
-            const auto& trA = world.GetComponent<TransformComp>(result.eid_a);
-            const auto& trB = world.GetComponent<TransformComp>(result.eid_b);
+            const auto& trA = world.GetComponent<LocalTransformComp>(result.eid_a);
+            const auto& trB = world.GetComponent<LocalTransformComp>(result.eid_b);
 
             const DirectX::SimpleMath::Vector3 centerA = GetColliderCenter(world, result.eid_a);
             const DirectX::SimpleMath::Vector3 centerB = GetColliderCenter(world, result.eid_b);
@@ -390,13 +405,13 @@ namespace ECS
 
             // 4. 重心位置の補正（平行移動）
             if (rbA)
-                world.GetComponent<TransformComp>(result.eid_a).position += -pImpulse * invMassA;
+                world.GetComponent<LocalTransformComp>(result.eid_a).localPosition += -pImpulse * invMassA;
             if (rbB)
-                world.GetComponent<TransformComp>(result.eid_b).position -= -pImpulse * invMassB;
+                world.GetComponent<LocalTransformComp>(result.eid_b).localPosition -= -pImpulse * invMassB;
         }
 
-        // ---- 角速度 → TransformComp::rotation -----------------------------
-        static void ApplyAngularVelocity(TransformComp& tr, const DirectX::SimpleMath::Vector3& angVel,
+        // ---- 角速度 → LocalTransformComp::localRotation -----------------------------
+        static void ApplyAngularVelocity(LocalTransformComp& tr, const DirectX::SimpleMath::Vector3& angVel,
                                          float dt) noexcept
         {
             const float speed = angVel.Length();
@@ -404,21 +419,21 @@ namespace ECS
                 return;
 
             const auto delta = DirectX::SimpleMath::Quaternion::CreateFromAxisAngle(angVel / speed, speed * dt);
-            tr.rotation = DirectX::SimpleMath::Quaternion::Concatenate(delta, tr.rotation);
-            tr.rotation.Normalize();
+            tr.localRotation = DirectX::SimpleMath::Quaternion::Concatenate(delta, tr.localRotation);
+            tr.localRotation.Normalize();
         }
 
         static DirectX::SimpleMath::Vector3 GetColliderCenter(World& world, EntityID eid)
         {
-            const auto& tr = world.GetComponent<TransformComp>(eid);
+            const auto& tr = world.GetComponent<LocalTransformComp>(eid);
 
             if (world.HasComponent<ColliderComp>(eid))
             {
                 const auto& col = world.GetComponent<ColliderComp>(eid);
-                return tr.position + col.localOffset;
+                return tr.localPosition + col.localOffset;
             }
 
-            return tr.position;
+            return tr.localPosition;
         }
         static float InertiaTerm(const DirectX::SimpleMath::Vector3& r, const DirectX::SimpleMath::Vector3& axis,
             const DirectX::SimpleMath::Matrix& iWorldInv, bool frozen)

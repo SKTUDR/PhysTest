@@ -17,6 +17,7 @@ namespace ECS
     struct EnemyTagComp{};
     struct PlayerTagComp{};
     struct RubbleTagComp{};
+    struct ProjectileTagComp{};
     
     struct BossTagComp{};
     struct GroundTagComp{};

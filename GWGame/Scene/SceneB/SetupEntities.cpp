@@ -24,6 +24,10 @@ namespace ECS
 
         auto& local = m_world.AddComponent<LocalTransformComp>(eid);
         local.localPosition = position;
+        local.localRotation = rotation;
+        local.localScale = scale;
+
+        auto& hierarchy = m_world.AddComponent<HierarchyComp>(eid);
 
         auto& ren = m_world.AddComponent<ModelRenderComp>(eid);
         ren.modelId = modelId;
@@ -31,7 +35,9 @@ namespace ECS
         return eid;
     }
 
-    EntityID ECS::EntityFactory::CreatePlayer(Graphics::ModelID modelId, const DirectX::SimpleMath::Vector3& position,
+    EntityID ECS::EntityFactory::CreatePlayer(Graphics::ModelID modelId,
+        Audio::ClipID footClip,
+        const DirectX::SimpleMath::Vector3& position,
                                               const DirectX::SimpleMath::Quaternion& rotation,
                                               const DirectX::SimpleMath::Vector3& scale)
     {
@@ -40,7 +46,7 @@ namespace ECS
 
         auto& col = m_world.AddComponent<ColliderComp>(eid);
 
-        col.shape = OBB{.halfExtents = {.5f, .5f, .5f}, .orientation = rotation};
+        col.shape = OBB{.halfExtents = {scale}, .orientation = rotation};
         col.layer = CollisionLayer::PLAYER;
         col.mask = LayerPreset::PLAYER_MASK;
         col.localOffset = {0.f, 0.f, 0.f}; // 足元が原点になるよう Y オフセット
@@ -56,6 +62,15 @@ namespace ECS
 
         auto& ren = m_world.GetComponent<ModelRenderComp>(eid);
         ren.visible = true;
+
+        m_world.AddComponent<AudioListenerComp>(eid);
+
+        auto& footSrc = m_world.AddComponent<AudioSourceComp>(eid);
+        footSrc.clipId = footClip;
+        footSrc.volume = 0.8f;
+        footSrc.loop = false;
+        footSrc.playOnStart = false;
+        footSrc.spatialize = true;
 
         // Tag
         m_world.AddComponent<PlayerTagComp>(eid);
@@ -77,10 +92,10 @@ namespace ECS
         col.localOffset = {0.f, 0.f, 0.f};
 
         auto& rb = m_world.AddComponent<RigidbodyComp>(eid); // デフォルトで質量1、重力有効、非運動体
-        rb.isKinematic = true;
+        rb.isKinematic = false;
         rb.SetMassAndInertia(60.f, {col.GetHalfExtents()}); // コライダーサイズに合わせて質量と慣性を設定
         rb.SetFreezeRotation(true);                        
-        rb.restitution = 0.3f;
+        rb.restitution = 0.0f;
         rb.staticFriction = 0.6f;
         rb.kineticFriction = 0.3f;
 
@@ -96,13 +111,13 @@ namespace ECS
     }
     EntityID EntityFactory::CreateRubble(Graphics::ModelID modelId, const DirectX::SimpleMath::Vector3& position,
                                         const DirectX::SimpleMath::Vector3& scale,
-                                        float mass)
+                                        float mass, EntityID parent)
     {
         ECS::EntityID eid = CreateEntity(modelId, position, DirectX::SimpleMath::Quaternion::Identity, scale);
 
         auto& col = m_world.AddComponent<ColliderComp>(eid);
 
-        col.shape = OBB{.halfExtents = {.5f, .5f, .5f}, .orientation = DirectX::SimpleMath::Quaternion::Identity};
+        col.shape = OBB{.halfExtents = {scale}, .orientation = DirectX::SimpleMath::Quaternion::Identity};
         col.layer = CollisionLayer::RUBBLE;
         col.mask = CollisionLayer::ALL;
         col.localOffset = {0.f, 0.f, 0.f};
@@ -118,13 +133,44 @@ namespace ECS
         auto& ren = m_world.GetComponent<ModelRenderComp>(eid);
         ren.visible = true;
 
+        auto& hierarchy = m_world.GetComponent<HierarchyComp>(eid);     
+        hierarchy.parent = parent;
+
         // Tag
-        m_world.AddComponent<EnemyTagComp>(eid);
+        m_world.AddComponent<RubbleTagComp>(eid);
         m_world.AddComponent<CastShadowComp>(eid);
 
         return eid;
 
     }
+
+    EntityID EntityFactory::CreateProjectile(Graphics::ModelID modelId, const DirectX::SimpleMath::Vector3& position,
+                                             const DirectX::SimpleMath::Vector3& scale,
+                                             const DirectX::SimpleMath::Vector3& direction, float mass, EntityID parent)
+    {
+        ECS::EntityID eid = CreateEntity(modelId, position);
+
+        auto& col = m_world.AddComponent<ColliderComp>(eid);
+        col.shape = OBB{.halfExtents = {scale}, .orientation = DirectX::SimpleMath::Quaternion::Identity};
+        col.layer = CollisionLayer::PLAYER;
+        col.mask = LayerPreset::PLAYER_MASK;
+        col.localOffset = {0.f, 0.f, 0.f}; // 足元が原点になるよう Y オフセット
+
+        auto& rb = m_world.AddComponent<RigidbodyComp>(eid); // デフォルトで質量1、重力有効、非運動体
+        rb.isKinematic = false;
+        rb.SetMassAndInertia(mass, {col.GetHalfExtents()}); // コライダーサイズに合わせて質量と慣性を設定
+        rb.SetFreezeRotation(true);                         // プレイヤーは回転させない
+        rb.restitution = 0.3f;
+        rb.staticFriction = 0.8f;
+        rb.kineticFriction = 0.7f;
+        rb.linearDamping = 4.f;
+
+        rb.AddForce(direction * 400);
+    }
+
+    
+
+
 
     EntityID EntityFactory::CreateGround(Graphics::ModelID modelId, const DirectX::SimpleMath::Vector3& position,
                                          const DirectX::SimpleMath::Quaternion& rotation = DirectX::SimpleMath::Quaternion::Identity,
@@ -170,6 +216,18 @@ namespace ECS
 
          return sunId;
     }
+    EntityID EntityFactory::CreateBGM(Audio::ClipID BGMClip, float volume, bool loop, bool playOnStart, bool spatialize)
+    {
+        ECS::EntityID bgmEid = m_world.Create();
+        auto& bgmSrc = m_world.AddComponent<ECS::AudioSourceComp>(bgmEid);
+        bgmSrc.clipId = BGMClip;
+        bgmSrc.volume = volume;
+        bgmSrc.loop = loop;
+        bgmSrc.playOnStart = playOnStart;
+        bgmSrc.spatialize = spatialize;
+
+        return bgmEid;
+    }
     EntityID EntityFactory::CreateCamera(const DirectX::SimpleMath::Vector3& position,
                                          const DirectX::SimpleMath::Quaternion& rotation,
                                          const int priority, const float fov, const float nearClip, const float farClip,
@@ -187,6 +245,36 @@ namespace ECS
         camCam.farZ = farClip;
         camCam.isPerspective = isPerspective;
         camCam.isActive = isActive;
+
+        return camId;
+    }
+
+    EntityID EntityFactory::CreateEIDFollowCamera(EntityID folEid, const DirectX::SimpleMath::Vector3& position,
+                                                  const DirectX::SimpleMath::Quaternion& rotation, const int priority,
+                                                  const float fov, const float nearClip, const float farClip,
+                                                  const bool isPerspective, const bool isActive)
+    {
+        ECS::EntityID camId =
+            CreateCamera(position, rotation, priority, fov, nearClip, farClip, isPerspective, isActive);
+
+        auto& folCam = m_world.AddComponent<FollowCameraComp>(camId);
+
+        folCam.target = folEid;
+
+        // 距離・位置
+        folCam.distance = 5.f;
+        folCam.height = 1.6f;
+        folCam.shoulderOffset = {-.0f, 0.f, 0.f};
+
+        // 角度
+        folCam.azimuth = 0.f;
+        folCam.elevation = 0.25f;
+        folCam.elevationMin = -0.9f;
+        folCam.elevationMax = 0.9f;
+
+        // 追従の滑らかさ
+        folCam.positionSmoothing = 25.f;
+        folCam.rotationSmoothing = 120.f;
 
         return camId;
     }
@@ -209,7 +297,7 @@ namespace ECS
             });
 
         // 距離・位置
-        folCam.distance = 5.f;
+        folCam.distance = -5.f;
         folCam.height = 1.6f;
         folCam.shoulderOffset = {-.0f, 0.f, 0.f};
 

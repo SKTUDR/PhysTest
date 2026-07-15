@@ -111,6 +111,21 @@ struct LocalTransformComp
                                                                             DirectX::XMConvertToRadians(rollDeg));
     }
 
+    // ---- 向きベクトル ------------------------------------------------------
+    // SimpleMath::Quaternion::Transform で基底ベクトルを回転させる。
+    DirectX::SimpleMath::Vector3 Forward() const noexcept
+    {
+        return DirectX::SimpleMath::Vector3::Transform(DirectX::SimpleMath::Vector3::Forward, localRotation);
+    }
+    DirectX::SimpleMath::Vector3 Right() const noexcept
+    {
+        return DirectX::SimpleMath::Vector3::Transform(DirectX::SimpleMath::Vector3::Right, localRotation);
+    }
+    DirectX::SimpleMath::Vector3 Up() const noexcept
+    {
+        return DirectX::SimpleMath::Vector3::Transform(DirectX::SimpleMath::Vector3::Up, localRotation);
+    }
+
     // 指定方向を向く（up が省略された場合は Y-up）
     void LookAt(const DirectX::SimpleMath::Vector3& target,
                 const DirectX::SimpleMath::Vector3& up = DirectX::SimpleMath::Vector3::Up) noexcept

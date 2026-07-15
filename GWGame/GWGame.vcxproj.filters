@@ -37,7 +37,9 @@
     <ClCompile Include="ResourceManager\ShaderManager.cpp">
       <Filter>ResourceManager</Filter>
     </ClCompile>
-    <ClCompile Include="Physics\PhysicsWorld.cpp" />
+    <ClCompile Include="Physics\PhysicsWorld.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game.h" />
@@ -211,8 +213,38 @@
     <ClInclude Include="Components\Hierarchy.h">
       <Filter>Components</Filter>
     </ClInclude>
-    <ClInclude Include="Components\SceneGraphSystem.h">
+    <ClInclude Include="Systems\InputAction.h">
+      <Filter>Systems\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\InputBinding.h">
+      <Filter>Systems\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\InputSystem.h">
+      <Filter>Systems\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\RubbleController.h">
       <Filter>Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\SceneGraphSystem.h">
+      <Filter>Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="Audio\AudioClip.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Audio\AudioRegistry.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\AudioSource.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\AudioListener.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Audio\AudioSystem.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\FixedUpdateRunner.h">
+      <Filter>Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -272,6 +304,12 @@
     </Filter>
     <Filter Include="Physics">
       <UniqueIdentifier>{bc702c7a-846f-4138-9e50-741926d7ecbe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Systems\Input">
+      <UniqueIdentifier>{39afff58-2548-42bf-8ee0-05e2e9f05025}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Audio">
+      <UniqueIdentifier>{b7cab3f5-e559-4ad3-b04e-6625499c1333}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

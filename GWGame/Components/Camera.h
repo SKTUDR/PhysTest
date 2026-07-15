@@ -36,7 +36,7 @@ namespace ECS
     {
         EntityID target; // 追従対象エンティティ
 
-        float distance = 30.f; // ターゲットからカメラまでの距離
+        float distance = -0.f; // ターゲットからカメラまでの距離
         float height = 0.f;  // ターゲット基準の高さオフセット
 
         // ターゲットのローカル座標系での視点中心オフセット

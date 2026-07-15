@@ -1,4 +1,4 @@
-﻿//
+//
 // Main.cpp
 //
 
@@ -53,6 +53,9 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     // マウス
     std::unique_ptr<Mouse> mouse = std::make_unique<Mouse>();
 
+    // ゲームパッド
+    std::unique_ptr<GamePad> gamePad = std::make_unique<GamePad>();
+
     g_game = std::make_unique<Game>();
 
     // Register class and create window
@@ -90,7 +93,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
             return 1;
 
         // マウスにウインドウハンドルを設定
-        mouse->SetWindow(hwnd);
+        Mouse::Get().SetWindow(hwnd);
 
         ShowWindow(hwnd, nCmdShow);
         // TODO: Change nCmdShow to SW_SHOWMAXIMIZED to default to fullscreen.

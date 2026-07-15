@@ -35,13 +35,13 @@ inline constexpr bool Any(CollisionLayer v) noexcept {
 
 // よく使うフィルタプリセット
 namespace LayerPreset {
-    // プレイヤー: 地形・敵と衝突
+    // プレイヤー: 地形・敵・瓦礫と衝突
     inline constexpr CollisionLayer PLAYER_MASK =
-        CollisionLayer::WORLD | CollisionLayer::ENEMY;
+        CollisionLayer::WORLD | CollisionLayer::ENEMY | CollisionLayer::RUBBLE;
 
     // 敵: 地形・プレイヤーと衝突、投げたいた石とは衝突しない
     inline constexpr CollisionLayer ENEMY_MASK =
-        CollisionLayer::WORLD | CollisionLayer::PLAYER;
+        CollisionLayer::WORLD | CollisionLayer::PLAYER | CollisionLayer::RUBBLE;
 
     // 地形: プレイヤー・敵・投げた石と衝突
     inline constexpr CollisionLayer WORLD_MASK = 

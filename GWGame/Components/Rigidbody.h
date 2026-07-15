@@ -10,8 +10,9 @@ namespace ECS
         float mass = 1.f;
         float invMass = 1.f;
 
-        // ---- 慣性テンソル（ローカル空間・対角成分のみ）--------------------------
+        // ---- 慣性テンソル --------------------------
         DirectX::SimpleMath::Vector3 localInvInertia = {1.f, 1.f, 1.f};
+        DirectX::SimpleMath::Matrix worldInvInertia = DirectX::SimpleMath::Matrix::Identity;
 
         // ---- 速度 ---------------------------------------------------------------
         DirectX::SimpleMath::Vector3 velocity = {};
@@ -111,6 +112,11 @@ namespace ECS
             return R * I_local_inv * R.Transpose();
         }
 
+        void UpdateWorldInvInertia(const DirectX::SimpleMath::Quaternion& rot)
+        {
+            worldInvInertia = CalcWorldInvInertia(rot);
+        }
+
         // ---- インパルス適用 -----------------------------------------------------
 
         void ApplyImpulse(const DirectX::SimpleMath::Vector3& impulse) noexcept
@@ -120,14 +126,13 @@ namespace ECS
             velocity += impulse * invMass;
         }
 
-        void ApplyAngularImpulse(const DirectX::SimpleMath::Vector3& angularImpulse,
-                                 const DirectX::SimpleMath::Quaternion& rot) noexcept
+        void ApplyAngularImpulse(const DirectX::SimpleMath::Vector3& angularImpulse) noexcept
         {
             if (isKinematic || FreezeRotation())
                 return;
 
-            const DirectX::SimpleMath::Matrix iWorldInv = CalcWorldInvInertia(rot);
-            DirectX::SimpleMath::Vector3 delta = DirectX::SimpleMath::Vector3::Transform(angularImpulse, iWorldInv);
+            //const DirectX::SimpleMath::Matrix iWorldInv = CalcWorldInvInertia(rot);
+            DirectX::SimpleMath::Vector3 delta = DirectX::SimpleMath::Vector3::Transform(angularImpulse, worldInvInertia);
 
             // 念のためフリーズ軸をクランプ（数値誤差対策）
             const DirectX::SimpleMath::Vector3 mask = AngularFreezeAxisMask();
@@ -141,8 +146,7 @@ namespace ECS
 
         void IntegrateAngularVelocity(const DirectX::SimpleMath::Quaternion& rot, float dt) noexcept
         {
-            const DirectX::SimpleMath::Matrix iWorldInv = CalcWorldInvInertia(rot);
-            DirectX::SimpleMath::Vector3 dw = DirectX::SimpleMath::Vector3::Transform(torqueAccum, iWorldInv) * dt;
+            DirectX::SimpleMath::Vector3 dw = DirectX::SimpleMath::Vector3::Transform(torqueAccum, worldInvInertia) * dt;
 
             const DirectX::SimpleMath::Vector3 mask = AngularFreezeAxisMask();
             dw.x *= mask.x;

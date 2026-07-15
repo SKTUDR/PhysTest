@@ -41,7 +41,7 @@ public:
     void AddMouseDelta(float dx, float dy) noexcept
     {
         m_mouseDeltaX += dx;
-        m_mouseDeltaY += dy;
+        m_mouseDeltaY -= dy;
     }
 
     // ---- メインアップデート -------------------------------------------------

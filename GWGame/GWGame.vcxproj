@@ -186,7 +186,12 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Audio\AudioClip.h" />
+    <ClInclude Include="Audio\AudioRegistry.h" />
+    <ClInclude Include="Audio\AudioSystem.h" />
     <ClInclude Include="Common\DeviceResources.h" />
+    <ClInclude Include="Components\AudioListener.h" />
+    <ClInclude Include="Components\AudioSource.h" />
     <ClInclude Include="Components\Camera.h" />
     <ClInclude Include="Components\CastShadow.h" />
     <ClInclude Include="Components\Collider.h" />
@@ -199,7 +204,6 @@
     <ClInclude Include="Components\Physics.h" />
     <ClInclude Include="Components\Render.h" />
     <ClInclude Include="Components\Rigidbody.h" />
-    <ClInclude Include="Components\SceneGraphSystem.h" />
     <ClInclude Include="Components\Transform.h" />
     <ClInclude Include="DirectXTK_Utilities\DebugDraw.h" />
     <ClInclude Include="ECS\Archetype.h" />
@@ -229,6 +233,7 @@
     <ClInclude Include="Physics\SweepAndPrune.h" />
     <ClInclude Include="ResourceManager\ShaderManager.h" />
     <ClInclude Include="Scene\BaseScene\BaseScene.h" />
+    <ClInclude Include="Scene\FixedUpdateRunner.h" />
     <ClInclude Include="Scene\SceneA\SceneA.h" />
     <ClInclude Include="Scene\SceneB\SceneB.h" />
     <ClInclude Include="Scene\SceneB\SetupEntities.h" />
@@ -238,7 +243,10 @@
     <ClInclude Include="Systems\EnemySystem.h" />
     <ClInclude Include="Systems\FollowCameraSystem.h" />
     <ClInclude Include="Systems\GameDirector.h" />
+    <ClInclude Include="Systems\InputAction.h" />
+    <ClInclude Include="Systems\InputBinding.h" />
     <ClInclude Include="Systems\InputState.h" />
+    <ClInclude Include="Systems\InputSystem.h" />
     <ClInclude Include="Systems\InstancedRenderSystem.h" />
     <ClInclude Include="Systems\Physics.h" />
     <ClInclude Include="Systems\PhysicsSystem.h" />
@@ -246,6 +254,8 @@
     <ClInclude Include="Systems\PlayerSystem.h" />
     <ClInclude Include="Systems\RenderSystem.h" />
     <ClInclude Include="Systems\a.h" />
+    <ClInclude Include="Systems\RubbleController.h" />
+    <ClInclude Include="Systems\SceneGraphSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Common\DeviceResources.cpp" />
